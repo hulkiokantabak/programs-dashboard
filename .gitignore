@@ -1,0 +1,6 @@
+# Local server artifacts
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Only index.html goes to GitHub — everything else stays local

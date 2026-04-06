@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hulki's Programs Dashboard</title>
+  <style>
+    /* ═══════════════════════════════════════════════════
+       THEME — dark (default) & light
+    ═══════════════════════════════════════════════════ */
+    :root {
+      --bg:       #0d1117;
+      --surf:     #161b22;
+      --surf2:    #1c2128;
+      --border:   #30363d;
+      --border2:  #21262d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --dim:      #484f58;
+      --blue:     #58a6ff;
+      --blue-btn: #1f6feb;
+      --green:    #3fb950;
+      --green-btn:#238636;
+      --purple:   #bc8cff;
+      --orange:   #d29922;
+      --shadow:   #00000066;
+    }
+    html.light {
+      --bg:       #ffffff;
+      --surf:     #f6f8fa;
+      --surf2:    #eaeef2;
+      --border:   #d0d7de;
+      --border2:  #d8dee4;
+      --text:     #1f2328;
+      --muted:    #57606a;
+      --dim:      #8c959f;
+      --blue:     #0969da;
+      --blue-btn: #0969da;
+      --green:    #1a7f37;
+      --green-btn:#1a7f37;
+      --purple:   #8250df;
+      --orange:   #9a6700;
+      --shadow:   #0000001a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SHELL — sidebar + main
+    ═══════════════════════════════════════════════════ */
+    .shell { display: flex; height: 100vh; }
+
+    /* ═══════════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════════ */
+    .sidebar {
+      width: 248px;
+      min-width: 248px;
+      background: var(--surf);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-top {
+      padding: 16px 16px 13px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .brand { font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 7px; line-height: 1.3; }
+    .brand-sub { font-size: 0.7rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0 4px;
+    }
+
+    .nav-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--dim);
+      padding: 10px 16px 5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 14px;
+      margin: 1px 6px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background .12s;
+      user-select: none;
+    }
+    .nav-item:hover  { background: var(--surf2); }
+    .nav-item.active { background: var(--blue-btn)1a; }
+    .nav-item.active .nav-name { color: var(--blue); }
+    .nav-item.active .nav-badge { color: var(--blue); border-color: var(--blue)55; background: var(--blue)11; }
+
+    .nav-icon { font-size: 1rem; flex-shrink: 0; line-height: 1; }
+    .nav-text { flex: 1; min-width: 0; }
+    .nav-name { font-size: 0.81rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-cat  { font-size: 0.62rem; color: var(--muted); margin-top: 1px; }
+    .nav-item.active .nav-cat { color: var(--blue); opacity: .65; }
+    .nav-badge {
+      font-size: 0.63rem; font-weight: 700;
+      color: var(--dim); background: var(--surf2);
+      border: 1px solid var(--border2); border-radius: 20px;
+      padding: 1px 7px; flex-shrink: 0;
+      transition: all .12s;
+    }
+
+    .nav-hint { font-size: 0.65rem; color: var(--dim); padding: 10px 16px 6px; font-style: italic; }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 11px 13px 13px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .token-row { display: flex; align-items: center; gap: 6px; }
+    .token-row input {
+      flex: 1; min-width: 0;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text);
+      font-size: 0.71rem; padding: 4px 8px; outline: none;
+    }
+    .token-row input:focus { border-color: var(--blue); }
+    .tok-status { font-size: 0.67rem; }
+    .tok-ok   { color: var(--green); }
+    .tok-warn { color: var(--orange); }
+
+    .footer-row { display: flex; align-items: center; gap: 7px; }
+    .btn {
+      cursor: pointer; border: none; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 600; padding: 5px 11px;
+      transition: opacity .15s; white-space: nowrap;
+    }
+    .btn:hover { opacity: .82; }
+    .btn-ghost { background: var(--surf2); color: var(--muted); border: 1px solid var(--border); }
+    .btn-green { background: var(--green-btn); color: #fff; }
+    .btn-icon  { padding: 5px 7px; font-size: 0.9rem; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); }
+    .last-upd  { font-size: 0.63rem; color: var(--dim); margin-left: auto; text-align: right; }
+
+    /* ═══════════════════════════════════════════════════
+       MAIN PANEL
+    ═══════════════════════════════════════════════════ */
+    .main { flex: 1; overflow-y: auto; background: var(--bg); }
+    .main-inner { padding: 30px 36px 48px; max-width: 980px; }
+
+    /* ═══════════════════════════════════════════════════
+       PROGRAM HEADER
+    ═══════════════════════════════════════════════════ */
+    .prog-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 16px;
+      margin-bottom: 26px; padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .prog-title {
+      font-size: 1.65rem; font-weight: 700;
+      display: flex; align-items: center; gap: 10px; line-height: 1.1;
+    }
+    .prog-tag {
+      font-size: 0.68rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      background: var(--surf2); color: var(--dim); border: 1px solid var(--border2);
+    }
+    .prog-desc { font-size: 0.84rem; color: var(--muted); margin-top: 7px; }
+    .prog-btns { display: flex; gap: 8px; flex-shrink: 0; margin-top: 3px; }
+    a.pbtn {
+      text-decoration: none; display: flex; align-items: center; gap: 5px;
+      padding: 7px 15px; border-radius: 7px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid var(--border); color: var(--muted); background: var(--surf);
+      transition: all .15s; white-space: nowrap;
+    }
+    a.pbtn:hover { border-color: var(--blue); color: var(--blue); }
+    a.pbtn.play  { background: var(--blue-btn); border-color: var(--blue-btn); color: #fff; }
+    a.pbtn.play:hover { opacity: .88; }
+
+    /* ═══════════════════════════════════════════════════
+       SECTIONS
+    ═══════════════════════════════════════════════════ */
+    .section { margin-bottom: 22px; }
+    .sec-title {
+      font-size: 0.67rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--dim); margin-bottom: 13px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .period { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--dim); }
+
+    /* Traffic */
+    .traffic-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .col-lbl { font-size: 0.74rem; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .col-lbl .tv { font-weight: 700; color: var(--text); }
+    .chart-wrap { height: 72px; }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    /* Engagement */
+    .eng-row { display: flex; gap: 12px; }
+    .eng-cell {
+      flex: 1; background: var(--surf); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 14px 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px;
+    }
+    .eng-main { font-size: 1.45rem; font-weight: 700; }
+    .eng-new  { font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; }
+    .eng-new.pos  { color: var(--green); }
+    .eng-new.zero { color: var(--dim); }
+    .eng-lbl { font-size: 0.63rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+    .eng-sub { font-size: 0.63rem; color: var(--dim); }
+
+    /* Commits */
+    .commits-row { display: flex; gap: 14px; align-items: stretch; }
+    .commit-box {
+      background: var(--surf); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 14px 18px; min-width: 100px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .commit-num { font-size: 1.65rem; font-weight: 700; line-height: 1; }
+    .commit-lbl { font-size: 0.63rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+    .spark-box  {
+      flex: 1; background: var(--surf); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 12px 16px;
+    }
+    .spark-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+    .spark-lbl    { font-size: 0.66rem; color: var(--dim); }
+    .spark-status { font-size: 0.66rem; color: var(--orange); }
+    .spark-wrap { height: 48px; }
+
+    /* ═══════════════════════════════════════════════════
+       ALL-PROGRAMS VIEW
+    ═══════════════════════════════════════════════════ */
+    .all-hdr {
+      margin-bottom: 24px; padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .all-title { font-size: 1.65rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .all-sub   { font-size: 0.84rem; color: var(--muted); margin-top: 6px; }
+
+    .sum-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .sum-card { background: var(--surf); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .sum-val  { font-size: 1.9rem; font-weight: 700; line-height: 1; }
+    .sum-lbl  { font-size: 0.69rem; color: var(--muted); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+    /* Programs table */
+    .prog-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .prog-table th {
+      text-align: left; font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--dim); padding: 6px 12px 9px;
+      border-bottom: 1px solid var(--border);
+    }
+    .prog-table td { padding: 11px 12px; border-bottom: 1px solid var(--border2); vertical-align: middle; }
+    .prog-table tbody tr { cursor: pointer; transition: background .1s; }
+    .prog-table tbody tr:hover td { background: var(--surf2); }
+    .prog-table tbody tr:last-child td { border-bottom: none; }
+    .prog-name-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .prog-tag-sm {
+      font-size: 0.6rem; color: var(--dim);
+      background: var(--surf2); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 1px 6px; flex-shrink: 0;
+    }
+    .nc        { font-weight: 700; text-align: right; }
+    .nc.blue   { color: var(--blue); }
+    .nc.green  { color: var(--green); }
+    .nc.orange { color: var(--orange); }
+    .nc.purple { color: var(--purple); }
+    tfoot tr td {
+      font-weight: 700; font-size: 0.85rem;
+      background: var(--surf2) !important;
+      border-top: 2px solid var(--border);
+      border-bottom: none !important;
+    }
+
+    /* GoatCounter banner */
+    .gc-banner {
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px; margin-top: 26px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .gc-banner h3 { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
+    .gc-banner p  { font-size: 0.75rem; color: var(--muted); }
+    .gc-links     { display: flex; gap: 8px; }
+    a.gc-link {
+      text-decoration: none; color: var(--muted); font-size: 0.76rem;
+      padding: 5px 12px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 6px;
+      display: flex; align-items: center; gap: 4px; transition: all .15s;
+    }
+    a.gc-link:hover { border-color: var(--green); color: var(--green); }
+
+    /* ═══════════════════════════════════════════════════
+       TOOLTIP
+    ═══════════════════════════════════════════════════ */
+    .tooltip {
+      position: fixed; pointer-events: none; z-index: 300;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 10px; font-size: 0.72rem;
+      opacity: 0; transition: opacity .1s; white-space: nowrap;
+      box-shadow: 0 4px 14px var(--shadow);
+    }
+    .tt-lbl { color: var(--muted); }
+    .tt-val { color: var(--text); font-weight: 600; }
+
+    /* Pulse skeleton */
+    .skel { background: var(--border2); border-radius: 4px; animation: pulse 1.4s infinite; display: inline-block; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+
+    <div class="sidebar-top">
+      <div class="brand">🖥 Programs Dashboard</div>
+      <div class="brand-sub">hulkiokantabak</div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- built by JS -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="token-row">
+        <input type="password" id="tokenInput" placeholder="GitHub token (ghp_…)" oninput="saveToken()" />
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Programs+Dashboard" target="_blank" title="Create token">
+          <button class="btn btn-ghost" style="padding:4px 8px;font-size:.68rem;">Get ↗</button>
+        </a>
+      </div>
+      <span id="tokenStatus" class="tok-status tok-warn">⚠ Token needed for traffic &amp; commit data</span>
+      <div class="footer-row">
+        <button class="btn-icon btn" id="themeBtn" onclick="toggleTheme()" title="Toggle day / night">🌙</button>
+        <button class="btn btn-green" onclick="loadAll()">⟳ Refresh</button>
+        <span class="last-upd" id="lastUpd">—</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+    <div class="main-inner" id="mainContent">
+      <!-- rendered by JS -->
+    </div>
+  </main>
+
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tt-lbl" id="ttLbl"></div>
+  <div class="tt-val" id="ttVal"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  PROGRAMS CONFIG
+//  ─────────────────────────────────────────────────────────────────
+//  To add a new program, copy one entry block and fill it in.
+//  Only `name` (GitHub repo slug) and `display` are required.
+//  Set `url: null` if there is no live link.
+// ═══════════════════════════════════════════════════════════════════
+const OWNER = 'hulkiokantabak';
+
+const PROGRAMS = [
+  {
+    name:    'bounce-game',
+    display: 'BOUNCE',
+    icon:    '🏀',
+    tag:     'Arcade',
+    desc:    'A one-thumb browser game. The ball drops. You tap. It bounces.',
+    url:     'https://hulkiokantabak.github.io/bounce-game/',
+  },
+  {
+    name:    'trace-game',
+    display: 'Trace',
+    icon:    '🕵️',
+    tag:     'Text Adventure',
+    desc:    'A solo narrative exploration game set in present-day East London.',
+    url:     'https://hulkiokantabak.github.io/trace-game/',
+  },
+  {
+    name:    'heart-quest',
+    display: 'Heart Quest',
+    icon:    '💘',
+    tag:     'Dating Sim',
+    desc:    'A browser dating simulator. 12 characters, 10 locations, 80+ actions.',
+    url:     'https://hulkiokantabak.github.io/heart-quest/',
+  },
+  {
+    name:    'Bosphorus-Ferry',
+    display: 'Bosphorus Ferry',
+    icon:    '⛴️',
+    tag:     'Interactive Fiction',
+    desc:    'A choice-driven text adventure set in Istanbul. 3 episodes, 8 endings.',
+    url:     'https://hulkiokantabak.github.io/Bosphorus-Ferry/',
+  },
+  {
+    name:    'nft-rarity-scorer',
+    display: 'NFT Rarity Scorer',
+    icon:    '🔍',
+    tag:     'Tool',
+    desc:    'Score NFT traits by rarity tiers using OpenSea data. Browser tool.',
+    url:     'https://hulkiokantabak.github.io/nft-rarity-scorer/',
+  },
+  {
+    name:    'programs-dashboard',
+    display: 'Programs Dashboard',
+    icon:    '🖥',
+    tag:     'Meta',
+    desc:    'This dashboard — monitors all programs via GitHub and GoatCounter.',
+    url:     'https://hulkiokantabak.github.io/programs-dashboard/',
+  },
+  // ──────────────────────────────────────────────────────────────
+  // ADD NEW PROGRAMS BELOW — copy & paste this block:
+  // {
+  //   name:    'repo-name-on-github',   // exact GitHub repo slug
+  //   display: 'Display Name',
+  //   icon:    '🎯',
+  //   tag:     'Category',
+  //   desc:    'One-line description.',
+  //   url:     'https://hulkiokantabak.github.io/repo-name/',  // or null
+  // },
+  // ──────────────────────────────────────────────────────────────
+];
+
+// ═══════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════
+let token       = '';
+let currentView = 'all';           // 'all' | program.name
+const cache     = {};              // { [name]: { info, views, clones, stargazers, forks, commits14, commitStats } }
+const retrying  = new Set();       // programs whose commit stats are being retried
+
+// ═══════════════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const goLight = document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark',  !goLight);
+  document.documentElement.classList.toggle('light', goLight);
+  document.getElementById('themeBtn').textContent = goLight ? '☀️' : '🌙';
+  localStorage.setItem('pd_theme', goLight ? 'light' : 'dark');
+}
+function applyTheme() {
+  const t = localStorage.getItem('pd_theme') || 'dark';
+  document.documentElement.className = t;
+  document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  TOKEN
+//  Security: token lives only in the user's browser localStorage.
+//  It is sent directly to api.github.com and nowhere else.
+// ═══════════════════════════════════════════════════════════════════
+function saveToken() {
+  token = document.getElementById('tokenInput').value.trim();
+  localStorage.setItem('pd_token', token);
+  refreshTokenUI();
+  loadAll();
+}
+function loadToken() {
+  token = localStorage.getItem('pd_token') || '';
+  if (token) document.getElementById('tokenInput').value = token;
+  refreshTokenUI();
+}
+function refreshTokenUI() {
+  const el = document.getElementById('tokenStatus');
+  el.textContent = token
+    ? '✓ Token active — all stats enabled'
+    : '⚠ Token needed for traffic & commit data';
+  el.className = 'tok-status ' + (token ? 'tok-ok' : 'tok-warn');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GITHUB API
+// ═══════════════════════════════════════════════════════════════════
+async function gh(path, accept) {
+  const h = { Accept: accept || 'application/vnd.github+json' };
+  if (token) h.Authorization = `Bearer ${token}`;
+  const r = await fetch('https://api.github.com' + path, { headers: h });
+  if (r.status === 202) return null;   // stats computing — caller handles
+  if (!r.ok) throw new Error(`${r.status} ${path}`);
+  return r.json();
+}
+
+// Commit-activity endpoint returns 202 while GitHub computes the data.
+// We trigger it here, then schedule a background retry.
+// The retry updates the cache and re-renders if the view is still relevant.
+async function fetchCommitStats(name) {
+  const path = `/repos/${OWNER}/${name}/stats/commit_activity`;
+  const data  = await gh(path);
+  if (data !== null) return data;
+
+  // 202 — start background retry chain (won't block initial render)
+  if (!retrying.has(name)) {
+    retrying.add(name);
+    bgRetryStats(name, path, [45000, 90000, 180000]);
+  }
+  return null;
+}
+
+async function bgRetryStats(name, path, delays) {
+  for (const delay of delays) {
+    await sleep(delay);
+    try {
+      const data = await gh(path);
+      if (data && data.length) {
+        if (cache[name]) cache[name].commitStats = data;
+        retrying.delete(name);
+        // Update sparkline status indicator if visible
+        const statusEl = document.getElementById(`${name}-spark-status`);
+        if (statusEl) statusEl.textContent = '';
+        // Re-render sparkline canvas only (avoid full re-render jank)
+        const sc = document.getElementById(`${name}-spark`);
+        const pts = data.map(w => ({ label: weekStr(w.week), val: w.total || 0 }));
+        if (sc) requestAnimationFrame(() => drawSparkline(sc, pts, '#bc8cff'));
+        // Update 52w count box
+        const c52El = document.getElementById(`${name}-c52`);
+        if (c52El) c52El.textContent = fmtK(pts.reduce((s, p) => s + p.val, 0));
+        // If All Programs view is open, re-render it with fresh data
+        if (currentView === 'all') renderAllPrograms();
+        return;
+      }
+    } catch (_) {}
+  }
+  retrying.delete(name); // give up after all retries
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  CANVAS — BAR CHART
+// ═══════════════════════════════════════════════════════════════════
+function drawBars(canvas, points, color, key) {
+  if (!canvas || !points.length) return;
+  const dpr  = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width) return;
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pL = 2, pR = 2, pT = 4, pB = 4;
+  const cW = W - pL - pR, cH = H - pT - pB;
+  const maxV = Math.max(...points.map(p => p.val), 1);
+  const bW   = Math.max(1, cW / points.length - 1.5);
+  canvas._bars = [];
+  points.forEach((p, i) => {
+    const bH = p.val > 0 ? Math.max(2, (p.val / maxV) * cH) : 0;
+    const x  = pL + (i / points.length) * cW + (cW / points.length - bW) / 2;
+    const y  = pT + cH - bH;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, bW, bH, [2, 2, 0, 0]);
+    else ctx.rect(x, y, bW, bH);
+    ctx.fill();
+    canvas._bars.push({ x, y: pT, w: bW, fullH: cH, p });
+  });
+  canvas._key = key;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CANVAS — SPARKLINE
+// ═══════════════════════════════════════════════════════════════════
+function drawSparkline(canvas, points, color) {
+  if (!canvas || !points.length) return;
+  const dpr  = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width) return;
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pL = 1, pR = 1, pT = 2, pB = 2;
+  const cW = W - pL - pR, cH = H - pT - pB;
+  const maxV = Math.max(...points.map(p => p.val), 1);
+  const bW   = Math.max(1, cW / points.length - 1);
+  canvas._bars = [];
+  points.forEach((p, i) => {
+    const bH = p.val > 0 ? Math.max(2, (p.val / maxV) * cH) : 1;
+    const x  = pL + (i / points.length) * cW + (cW / points.length - bW) / 2;
+    const y  = pT + cH - bH;
+    ctx.fillStyle = i >= points.length - 2 ? color : color + '55';
+    ctx.fillRect(x, y, bW, bH);
+    canvas._bars.push({ x, y: pT, w: bW, fullH: cH, p });
+  });
+  canvas._key = 'commits';
+}
+
+// ─── Tooltip ───
+const tooltip = document.getElementById('tooltip');
+document.addEventListener('mousemove', e => {
+  const el = e.target.tagName === 'CANVAS' ? e.target : null;
+  if (!el || !el._bars) { tooltip.style.opacity = 0; return; }
+  const rect = el.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  for (const b of el._bars) {
+    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.fullH) {
+      document.getElementById('ttLbl').textContent = b.p.label;
+      document.getElementById('ttVal').textContent = b.p.val + ' ' +
+        (el._key === 'clones' ? 'clones' : el._key === 'views' ? 'views' : 'commits');
+      tooltip.style.opacity = 1;
+      tooltip.style.left = (e.clientX + 13) + 'px';
+      tooltip.style.top  = (e.clientY - 36) + 'px';
+      return;
+    }
+  }
+  tooltip.style.opacity = 0;
+});
+document.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+
+// ═══════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function fmtK(n)    { if (n == null) return '—'; return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
+function dateStr(s) { return s.slice(5,10); }
+function weekStr(t) { return new Date(t*1000).toISOString().slice(2,7); }
+function sign(n)    { return n > 0 ? `+${n}` : n === 0 ? '—' : String(n); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════════════════════
+function buildSidebar() {
+  document.getElementById('sidebarNav').innerHTML = `
+    <div class="nav-label">Overview</div>
+    <div class="nav-item ${currentView==='all'?'active':''}" onclick="navigate('all')">
+      <span class="nav-icon">◈</span>
+      <div class="nav-text">
+        <div class="nav-name">All Programs</div>
+        <div class="nav-cat">Aggregated</div>
+      </div>
+      <span class="nav-badge" id="badge-all">${PROGRAMS.length}</span>
+    </div>
+
+    <div class="nav-label" style="margin-top:6px">Programs</div>
+    ${PROGRAMS.map(p => `
+      <div class="nav-item ${currentView===p.name?'active':''}" onclick="navigate('${p.name}')">
+        <span class="nav-icon">${p.icon}</span>
+        <div class="nav-text">
+          <div class="nav-name">${p.display}</div>
+          <div class="nav-cat">${p.tag}</div>
+        </div>
+        <span class="nav-badge" id="badge-${p.name}">—</span>
+      </div>
+    `).join('')}
+
+    <div class="nav-hint">Add programs in the PROGRAMS config ↑</div>
+  `;
+}
+
+function updateBadges() {
+  PROGRAMS.forEach(p => {
+    const el = document.getElementById(`badge-${p.name}`);
+    const d  = cache[p.name];
+    if (!el || !d) return;
+    const v = d.views?.count ?? 0;
+    el.textContent = v > 0 ? `${v}v` : '—';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════════════
+function navigate(view) {
+  currentView = view;
+  buildSidebar();
+  renderCurrentView();
+}
+function renderCurrentView() {
+  currentView === 'all' ? renderAllPrograms() : renderProgram(PROGRAMS.find(p => p.name === currentView));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER — INDIVIDUAL PROGRAM
+// ═══════════════════════════════════════════════════════════════════
+function renderProgram(prog) {
+  if (!prog) return;
+  const n       = prog.name;
+  const d       = cache[n] || {};
+  const since14 = daysAgo(14);
+  const cutoff  = new Date(since14);
+
+  const vPts   = (d.views?.views   || []).map(x => ({ label: dateStr(x.timestamp), val: x.count }));
+  const cPts   = (d.clones?.clones || []).map(x => ({ label: dateStr(x.timestamp), val: x.count }));
+  const vTot   = d.views?.count  ?? 0;
+  const cTot   = d.clones?.count ?? 0;
+
+  const info     = d.info || {};
+  const stars    = info.stargazers_count ?? 0;
+  const forks    = info.forks_count     ?? 0;
+  const watchers = info.watchers_count  ?? 0;
+  const sgList   = d.stargazers || [];
+  const fkList   = d.forks     || [];
+  const starsNew = sgList.filter(s => new Date(s.starred_at || 0) >= cutoff).length;
+  const forksNew = fkList.filter(f => new Date(f.created_at || 0) >= cutoff).length;
+
+  const c14      = (d.commits14   || []).length;
+  const weekly   = d.commitStats  || [];
+  const c52      = weekly.reduce((s, w) => s + (w.total || 0), 0);
+  const sparkPts = weekly.map(w => ({ label: weekStr(w.week), val: w.total || 0 }));
+  const hasSpark = sparkPts.length > 0;
+  const computing = token && !hasSpark;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="prog-header">
+      <div>
+        <div class="prog-title">${prog.icon} ${prog.display}
+          <span class="prog-tag">${prog.tag}</span>
+        </div>
+        <div class="prog-desc">${prog.desc}</div>
+      </div>
+      <div class="prog-btns">
+        ${prog.url ? `<a href="${prog.url}" target="_blank" class="pbtn play">▶ Open</a>` : ''}
+        <a href="https://github.com/${OWNER}/${n}" target="_blank" class="pbtn">📁 Repo</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">📡 Traffic <span class="period">· last 14 days</span></div>
+      <div class="traffic-cols">
+        <div>
+          <div class="col-lbl">
+            <span style="color:var(--blue)">👁 Views</span>
+            <span class="tv">${vTot} <span style="color:var(--muted);font-weight:400">(${d.views?.uniques ?? 0} uniq)</span></span>
+          </div>
+          <div class="chart-wrap"><canvas id="${n}-vc"></canvas></div>
+        </div>
+        <div>
+          <div class="col-lbl">
+            <span style="color:var(--green)">📥 Clones</span>
+            <span class="tv">${cTot} <span style="color:var(--muted);font-weight:400">(${d.clones?.uniques ?? 0} uniq)</span></span>
+          </div>
+          <div class="chart-wrap"><canvas id="${n}-cc"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">⭐ Engagement <span class="period">· cumulative + new in 14d</span></div>
+      <div class="eng-row">
+        <div class="eng-cell">
+          <div class="eng-main" style="color:var(--orange)">${stars}</div>
+          <div class="eng-new ${starsNew>0?'pos':'zero'}">${sign(starsNew)}</div>
+          <div class="eng-lbl">Stars total</div>
+          <div class="eng-sub">new this 14d</div>
+        </div>
+        <div class="eng-cell">
+          <div class="eng-main" style="color:var(--purple)">${forks}</div>
+          <div class="eng-new ${forksNew>0?'pos':'zero'}">${sign(forksNew)}</div>
+          <div class="eng-lbl">Forks total</div>
+          <div class="eng-sub">new this 14d</div>
+        </div>
+        <div class="eng-cell">
+          <div class="eng-main" style="color:var(--muted)">${watchers}</div>
+          <div class="eng-new zero">cumulative</div>
+          <div class="eng-lbl">Watchers</div>
+          <div class="eng-sub">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">🔨 Commits <span class="period">· 14 days &amp; 52 weeks</span></div>
+      <div class="commits-row">
+        <div class="commit-box">
+          <div class="commit-num">${c14}</div>
+          <div class="commit-lbl">Last 14d</div>
+        </div>
+        <div class="commit-box">
+          <div class="commit-num" id="${n}-c52">${fmtK(c52)}</div>
+          <div class="commit-lbl">Last 52w</div>
+        </div>
+        <div class="spark-box">
+          <div class="spark-hdr">
+            <div class="spark-lbl">Weekly commits — 52 weeks <span style="opacity:.5">(last 2 highlighted)</span></div>
+            <div class="spark-status" id="${n}-spark-status">${computing ? '⏳ computing…' : ''}</div>
+          </div>
+          <div class="spark-wrap"><canvas id="${n}-spark"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gc-banner">
+      <div>
+        <h3>📊 Player Analytics — GoatCounter</h3>
+        <p>Real visitor counts, countries, devices and referrers. Tracks from setup onwards — your true lifetime metric.</p>
+      </div>
+      <div class="gc-links">
+        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
+        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    if (vPts.length)    drawBars(document.getElementById(`${n}-vc`),    vPts,    '#1f6feb', 'views');
+    if (cPts.length)    drawBars(document.getElementById(`${n}-cc`),    cPts,    '#238636', 'clones');
+    if (hasSpark)       drawSparkline(document.getElementById(`${n}-spark`), sparkPts, '#bc8cff');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER — ALL PROGRAMS
+// ═══════════════════════════════════════════════════════════════════
+function renderAllPrograms() {
+  const cutoff = new Date(daysAgo(14));
+
+  let totV = 0, totC = 0, totS = 0, totCm = 0;
+  const rows = PROGRAMS.map(prog => {
+    const d  = cache[prog.name] || {};
+    const v  = d.views?.count ?? 0;
+    const c  = d.clones?.count ?? 0;
+    const s  = d.info?.stargazers_count ?? 0;
+    const cm = (d.commits14 || []).length;
+    totV += v; totC += c; totS += s; totCm += cm;
+    return { prog, v, c, s, cm };
+  });
+
+  // Aggregate daily views across all programs
+  const dayMap = {};
+  PROGRAMS.forEach(prog => {
+    (cache[prog.name]?.views?.views || []).forEach(x => {
+      const k = dateStr(x.timestamp);
+      dayMap[k] = (dayMap[k] || 0) + x.count;
+    });
+  });
+  const allViewPts = Object.entries(dayMap).sort(([a],[b])=>a<b?-1:1).map(([label,val])=>({label,val}));
+
+  // Aggregate weekly commits across all programs
+  const wkMap = {};
+  PROGRAMS.forEach(prog => {
+    (cache[prog.name]?.commitStats || []).forEach(w => {
+      const k = weekStr(w.week);
+      wkMap[k] = (wkMap[k] || 0) + (w.total || 0);
+    });
+  });
+  const allSparkPts = Object.entries(wkMap).sort(([a],[b])=>a<b?-1:1).map(([label,val])=>({label,val}));
+  const allC52 = allSparkPts.reduce((s,p) => s+p.val, 0);
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="all-hdr">
+      <div class="all-title">◈ All Programs</div>
+      <div class="all-sub">Aggregated statistics across all ${PROGRAMS.length} programs</div>
+    </div>
+
+    <div class="sum-grid">
+      <div class="sum-card">
+        <div class="sum-val" style="color:var(--blue)">${fmtK(totV)}</div>
+        <div class="sum-lbl"><span class="dot" style="background:var(--blue)"></span>Total Views (14d)</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" style="color:var(--green)">${fmtK(totC)}</div>
+        <div class="sum-lbl"><span class="dot" style="background:var(--green)"></span>Total Clones (14d)</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" style="color:var(--orange)">${fmtK(totS)}</div>
+        <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Total Stars</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" style="color:var(--purple)">${fmtK(totCm)}</div>
+        <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Commits (14d)</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title">📋 Programs Breakdown <span class="period">· click a row to drill in</span></div>
+      <table class="prog-table">
+        <thead>
+          <tr>
+            <th>Program</th>
+            <th style="text-align:right">Views 14d</th>
+            <th style="text-align:right">Clones 14d</th>
+            <th style="text-align:right">Stars</th>
+            <th style="text-align:right">Commits 14d</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(({prog,v,c,s,cm}) => `
+            <tr onclick="navigate('${prog.name}')">
+              <td><div class="prog-name-cell">${prog.icon} ${prog.display} <span class="prog-tag-sm">${prog.tag}</span></div></td>
+              <td class="nc blue">${fmtK(v)}</td>
+              <td class="nc green">${fmtK(c)}</td>
+              <td class="nc orange">${fmtK(s)}</td>
+              <td class="nc purple">${fmtK(cm)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totals</td>
+            <td class="nc blue">${fmtK(totV)}</td>
+            <td class="nc green">${fmtK(totC)}</td>
+            <td class="nc orange">${fmtK(totS)}</td>
+            <td class="nc purple">${fmtK(totCm)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    ${allViewPts.length ? `
+    <div class="section">
+      <div class="sec-title">📡 Combined Views <span class="period">· last 14 days, all programs</span></div>
+      <div class="chart-wrap" style="height:80px"><canvas id="all-vc"></canvas></div>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="sec-title">🔨 Combined Commits <span class="period">· 52 weeks, all programs</span></div>
+      <div class="commits-row">
+        <div class="commit-box">
+          <div class="commit-num">${fmtK(totCm)}</div>
+          <div class="commit-lbl">Last 14d</div>
+        </div>
+        <div class="commit-box">
+          <div class="commit-num">${fmtK(allC52)}</div>
+          <div class="commit-lbl">Last 52w</div>
+        </div>
+        <div class="spark-box">
+          <div class="spark-hdr">
+            <div class="spark-lbl">Combined weekly commits — all programs</div>
+          </div>
+          <div class="spark-wrap"><canvas id="all-spark"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gc-banner">
+      <div>
+        <h3>📊 Analytics — GoatCounter</h3>
+        <p>Real visitor counts, countries, devices and referrers across all programs. Tracks from setup onwards indefinitely.</p>
+      </div>
+      <div class="gc-links">
+        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
+        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    if (allViewPts.length)  drawBars(document.getElementById('all-vc'),   allViewPts,  '#1f6feb', 'views');
+    if (allSparkPts.length) drawSparkline(document.getElementById('all-spark'), allSparkPts, '#bc8cff');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DATA LOADING
+// ═══════════════════════════════════════════════════════════════════
+async function fetchProgram(prog) {
+  const n       = prog.name;
+  const since14 = daysAgo(14);
+  const [info, views, clones, stars, forks, commits14, commitStats] =
+    await Promise.allSettled([
+      gh(`/repos/${OWNER}/${n}`),
+      token ? gh(`/repos/${OWNER}/${n}/traffic/views`)  : Promise.resolve(null),
+      token ? gh(`/repos/${OWNER}/${n}/traffic/clones`) : Promise.resolve(null),
+      token ? gh(`/repos/${OWNER}/${n}/stargazers?per_page=100&sort=newest`, 'application/vnd.github.star+json')
+            : Promise.resolve([]),
+      token ? gh(`/repos/${OWNER}/${n}/forks?sort=newest&per_page=100`) : Promise.resolve([]),
+      token ? gh(`/repos/${OWNER}/${n}/commits?since=${since14}&author=${OWNER}&per_page=100`) : Promise.resolve([]),
+      token ? fetchCommitStats(n) : Promise.resolve(null),
+    ]);
+  cache[n] = {
+    info:        info.status        === 'fulfilled' ? info.value        : {},
+    views:       views.status       === 'fulfilled' ? views.value       : null,
+    clones:      clones.status      === 'fulfilled' ? clones.value      : null,
+    stargazers:  stars.status       === 'fulfilled' ? (stars.value      || []) : [],
+    forks:       forks.status       === 'fulfilled' ? (forks.value      || []) : [],
+    commits14:   commits14.status   === 'fulfilled' ? (commits14.value  || []) : [],
+    commitStats: commitStats.status === 'fulfilled' ? commitStats.value : null,
+  };
+}
+
+async function loadAll() {
+  document.getElementById('lastUpd').textContent = 'Loading…';
+  await Promise.allSettled(PROGRAMS.map(fetchProgram));
+  updateBadges();
+  renderCurrentView();
+  document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RESIZE — redraw canvases on window resize
+// ═══════════════════════════════════════════════════════════════════
+let rsTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(rsTimer);
+  rsTimer = setTimeout(renderCurrentView, 220);
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+applyTheme();
+loadToken();
+buildSidebar();
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);   // auto-refresh every 5 min
+</script>
+
+<!-- ── GoatCounter — tracks this dashboard as a product ── -->
+<script data-goatcounter="https://hulkiokantabak.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
+</body>
+</html>
