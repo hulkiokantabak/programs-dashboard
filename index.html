@@ -1103,20 +1103,26 @@ async function loadGcData() {
   renderAnalytics();
   const { start, end } = gcIsoRange(gcTimeRange);
   const qs = `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
-  const [totRes, hitsRes, refsRes, brwsRes, locRes] = await Promise.allSettled([
-    gcFetch(`/stats/total${qs}`),
-    gcFetch(`/stats/hits${qs}&limit=10`),
-    gcFetch(`/stats/toprefs${qs}&limit=10`),
-    gcFetch(`/stats/browsers${qs}&limit=10`),
-    gcFetch(`/stats/locations${qs}&limit=10`)
-  ]);
-  gcCache.loading  = false;
-  gcCache.total    = totRes.status  === 'fulfilled' ? totRes.value  : null;
-  gcCache.hits     = hitsRes.status === 'fulfilled' ? hitsRes.value : null;
-  gcCache.refs     = refsRes.status === 'fulfilled' ? refsRes.value : null;
-  gcCache.browsers = brwsRes.status === 'fulfilled' ? brwsRes.value : null;
-  gcCache.locs     = locRes.status  === 'fulfilled' ? locRes.value  : null;
-  if (totRes.status !== 'fulfilled') gcCache.error = totRes.reason?.message || 'API error';
+
+  // GoatCounter rate limit: 4 req/sec — stagger requests 280ms apart
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const endpoints = [
+    [`/stats/total${qs}`,                'total'],
+    [`/stats/hits${qs}&limit=10`,        'hits'],
+    [`/stats/toprefs${qs}&limit=10`,     'refs'],
+    [`/stats/browsers${qs}&limit=10`,    'browsers'],
+    [`/stats/locations${qs}&limit=10`,   'locs'],
+  ];
+  let firstErr = null;
+  for (let i = 0; i < endpoints.length; i++) {
+    if (i > 0) await wait(280);
+    const [path, key] = endpoints[i];
+    try   { gcCache[key] = await gcFetch(path); }
+    catch (e) { gcCache[key] = null; if (!firstErr) firstErr = e.message; }
+  }
+
+  gcCache.loading = false;
+  if (firstErr && !gcCache.total) gcCache.error = firstErr;
   renderAnalytics();
 }
 
