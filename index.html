@@ -223,9 +223,75 @@
 
     ::-webkit-scrollbar       { width: 5px; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── color-mix() FALLBACKS (iOS Safari <16.2, Android Chrome <111) ── */
+    @supports not (color: color-mix(in srgb, red, blue)) {
+      .nav-item.active            { background: rgba(31,111,235,.12); }
+      .nav-item.active .nav-badge { border-color: rgba(88,166,255,.4); }
+      .nav-item.active .nav-cat   { color: var(--blue); }
+    }
+
+    /* ── MOBILE NAV BAR ── */
+    .mob-bar { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+               height: 52px; background: var(--surf); border-bottom: 1px solid var(--border);
+               padding: 0 14px; align-items: center; gap: 10px; }
+    .mob-bar-title { flex: 1; font-weight: 700; font-size: .88rem; white-space: nowrap;
+                     overflow: hidden; text-overflow: ellipsis; }
+    .mob-ham { background: none; border: 1px solid var(--border); border-radius: 6px;
+               color: var(--muted); cursor: pointer; padding: 5px 9px; font-size: 1.1rem;
+               line-height: 1; flex-shrink: 0; }
+    .mob-close { display: none; position: absolute; top: 50%; right: 12px;
+                 transform: translateY(-50%); background: none; border: none;
+                 color: var(--muted); font-size: 1.2rem; cursor: pointer;
+                 padding: 4px 8px; line-height: 1; border-radius: 5px; }
+    .mob-close:hover { color: var(--text); }
+    .mob-overlay { display: none; position: fixed; inset: 0; z-index: 190;
+                   background: rgba(0,0,0,.5); backdrop-filter: blur(2px); }
+
+    /* ── TABLE SCROLL WRAPPER ── */
+    .prog-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── RESPONSIVE — MOBILE (<640px) ── */
+    @media (max-width: 639px) {
+      body   { overflow: auto; height: auto; }
+      .shell { flex-direction: column; height: auto;
+               min-height: 100vh; min-height: 100dvh; }
+      .mob-bar   { display: flex; }
+      .mob-close { display: block; }
+      .sidebar-top { position: relative; padding-right: 44px; }
+      .sidebar { position: fixed; top: 0; left: 0;
+                 height: 100vh; height: 100dvh;
+                 width: min(280px, 85vw); z-index: 200;
+                 transform: translateX(-100%);
+                 transition: transform .22s cubic-bezier(.4,0,.2,1);
+                 box-shadow: 4px 0 24px var(--shadow); }
+      .sidebar.mob-open   { transform: translateX(0); }
+      .mob-overlay.mob-open { display: block; }
+      .main { padding-top: 52px; overflow-y: auto;
+              min-height: calc(100vh - 52px); min-height: calc(100dvh - 52px); }
+      .main-inner { padding: 18px 16px 48px; }
+      .ctgl { padding: 6px 12px; font-size: .68rem; min-height: 34px; }
+      .nav-launch { opacity: 1; }
+      .traffic-cols { grid-template-columns: 1fr; }
+      .sum-grid { grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); }
+    }
+
+    @media (min-width: 640px) {
+      .mob-bar     { display: none !important; }
+      .mob-overlay { display: none !important; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Mobile top bar — hidden on desktop via CSS -->
+<div class="mob-bar" id="mobBar">
+  <button class="mob-ham" onclick="sidebarOpen()" aria-label="Open navigation">☰</button>
+  <span class="mob-bar-title">🖥 Programs</span>
+  <button class="btn-icon btn" data-theme-btn onclick="toggleTheme()" title="Theme">🌙</button>
+  <button class="btn btn-green" onclick="loadAll()" style="font-size:.7rem;padding:4px 10px;flex-shrink:0">⟳</button>
+</div>
+<div class="mob-overlay" id="mobOverlay" onclick="sidebarClose()"></div>
 
 <div class="shell">
 
@@ -234,18 +300,19 @@
     <div class="sidebar-top">
       <div class="brand">🖥 Programs Dashboard</div>
       <div class="brand-sub">hulkiokantabak</div>
+      <button class="mob-close" onclick="sidebarClose()" aria-label="Close navigation">✕</button>
     </div>
     <nav class="sidebar-nav" id="sidebarNav"><!-- JS --></nav>
     <div class="sidebar-footer">
       <div class="token-row">
-        <input type="password" id="tokenInput" placeholder="GitHub token (ghp_…)" oninput="saveToken()" />
-        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Programs+Dashboard" target="_blank">
+        <input type="password" id="tokenInput" placeholder="GitHub token (ghp_…)" autocomplete="new-password" oninput="saveToken()" />
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Programs+Dashboard" target="_blank" rel="noopener noreferrer">
           <button class="btn btn-ghost" style="padding:4px 8px;font-size:.67rem;">Get ↗</button>
         </a>
       </div>
       <span id="tokenStatus" class="tok-status tok-warn">⚠ Token needed for traffic &amp; commit data</span>
       <div class="footer-row">
-        <button class="btn-icon btn" id="themeBtn" onclick="toggleTheme()" title="Day / Night">🌙</button>
+        <button class="btn-icon btn" id="themeBtn" data-theme-btn onclick="toggleTheme()" title="Day / Night">🌙</button>
         <button class="btn btn-green" onclick="loadAll()">⟳ Refresh</button>
         <span class="last-upd" id="lastUpd">—</span>
       </div>
@@ -313,24 +380,26 @@ const retrying  = new Set();
 function toggleTheme() {
   const toDark = !document.documentElement.classList.contains('dark');
   document.documentElement.className = toDark ? 'dark' : 'light';
-  document.getElementById('themeBtn').textContent = toDark ? '🌙' : '☀️';
+  document.querySelectorAll('[data-theme-btn]').forEach(b => b.textContent = toDark ? '🌙' : '☀️');
   localStorage.setItem('pd_theme', toDark ? 'dark' : 'light');
   renderCurrentView();
 }
 function applyTheme() {
   const t = localStorage.getItem('pd_theme') || 'dark';
   document.documentElement.className = t;
-  document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
+  document.querySelectorAll('[data-theme-btn]').forEach(b => b.textContent = t === 'dark' ? '🌙' : '☀️');
 }
 
 // ═══════════════════════════════════════════════════════
 //  TOKEN  — stored only in browser localStorage
 // ═══════════════════════════════════════════════════════
+let _tokenTimer;
 function saveToken() {
   token = document.getElementById('tokenInput').value.trim();
   localStorage.setItem('pd_token', token);
   refreshTokenUI();
-  loadAll();
+  clearTimeout(_tokenTimer);
+  _tokenTimer = setTimeout(loadAll, 800);
 }
 function loadToken() {
   token = localStorage.getItem('pd_token') || '';
@@ -584,7 +653,7 @@ function buildSidebar() {
           <div class="nav-cat" id="ncat-${p.name}">${p.tag}</div>
         </div>
         <span class="nav-badge" id="nbadge-${p.name}">—</span>
-        ${p.url ? `<a href="${p.url}" target="_blank" class="nav-launch" onclick="event.stopPropagation()" title="Open ${p.display}">▶</a>` : ''}
+        ${p.url ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer" class="nav-launch" onclick="event.stopPropagation()" title="Open ${p.display}">▶</a>` : ''}
       </div>`).join('')}
     <div class="nav-hint">Add programs in the PROGRAMS config ↑</div>`;
 }
@@ -610,7 +679,7 @@ function updateBadges() {
 // ═══════════════════════════════════════════════════════
 //  NAVIGATION & TOGGLES
 // ═══════════════════════════════════════════════════════
-function navigate(view) { currentView = view; buildSidebar(); renderCurrentView(); }
+function navigate(view) { currentView = view; buildSidebar(); renderCurrentView(); sidebarClose(); }
 function renderCurrentView() {
   currentView === 'all'
     ? renderAllPrograms()
@@ -619,6 +688,25 @@ function renderCurrentView() {
 function setStarsMode(v) { starsMode = v; renderCurrentView(); }
 function setForksMode(v) { forksMode = v; renderCurrentView(); }
 function setCmtMode(v)   { cmtMode   = v; renderCurrentView(); }
+function sidebarOpen() {
+  document.querySelector('.sidebar').classList.add('mob-open');
+  document.getElementById('mobOverlay').classList.add('mob-open');
+  document.body.style.overflow = 'hidden';
+}
+function sidebarClose() {
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  document.getElementById('mobOverlay').classList.remove('mob-open');
+  document.body.style.overflow = '';
+}
+let _autoRefreshId;
+function startAutoRefresh() {
+  clearInterval(_autoRefreshId);
+  _autoRefreshId = setInterval(loadAll, 5 * 60 * 1000);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) clearInterval(_autoRefreshId);
+  else { startAutoRefresh(); loadAll(); }
+});
 
 // ═══════════════════════════════════════════════════════
 //  SHARED: build the 5 stat cards (used on both pages)
@@ -714,8 +802,8 @@ function renderProgram(prog) {
         <div class="prog-desc">${prog.desc}</div>
       </div>
       <div class="prog-btns">
-        ${prog.url ? `<a href="${prog.url}" target="_blank" class="pbtn play">▶ Open</a>` : ''}
-        <a href="https://github.com/${OWNER}/${n}" target="_blank" class="pbtn">📁 Repo</a>
+        ${prog.url ? `<a href="${prog.url}" target="_blank" rel="noopener noreferrer" class="pbtn play">▶ Open</a>` : ''}
+        <a href="https://github.com/${OWNER}/${n}" target="_blank" rel="noopener noreferrer" class="pbtn">📁 Repo</a>
       </div>
     </div>
 
@@ -759,8 +847,8 @@ function renderProgram(prog) {
         <p>Real visitor counts, countries, devices and referrers. Tracks from setup onwards — your true lifetime metric.</p>
       </div>
       <div class="gc-links">
-        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
-        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
+        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" rel="noopener noreferrer" class="gc-link">📈 Dashboard</a>
+        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" rel="noopener noreferrer" class="gc-link">⚙️ Settings</a>
       </div>
     </div>`;
 
@@ -850,6 +938,7 @@ function renderAllPrograms() {
         <span class="sec-title">📋 Programs Breakdown</span>
         <span class="period" style="color:var(--dim)">· click any row to drill in</span>
       </div>
+      <div class="prog-table-wrap">
       <table class="prog-table">
         <thead>
           <tr>
@@ -890,6 +979,7 @@ function renderAllPrograms() {
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
 
     ${allVPts.length ? `
@@ -931,8 +1021,8 @@ function renderAllPrograms() {
         <p>Real visitor counts, countries, devices and referrers across all programs. Tracks from setup onwards indefinitely.</p>
       </div>
       <div class="gc-links">
-        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
-        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
+        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" rel="noopener noreferrer" class="gc-link">📈 Dashboard</a>
+        <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" rel="noopener noreferrer" class="gc-link">⚙️ Settings</a>
       </div>
     </div>`;
 
@@ -992,11 +1082,11 @@ applyTheme();
 loadToken();
 buildSidebar();
 loadAll();
-setInterval(loadAll, 5 * 60 * 1000);
+startAutoRefresh();
 </script>
 
 <!-- GoatCounter — tracks this dashboard as its own product -->
 <script data-goatcounter="https://hulkiokantabak.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+        async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
