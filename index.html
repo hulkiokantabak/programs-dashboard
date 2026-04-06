@@ -847,9 +847,9 @@ function renderAllPrograms() {
             <th class="r">Unique</th>
             <th class="r">Clones 14d</th>
             <th class="r">Unique</th>
-            <th class="r">Stars ⭐</th>
-            <th class="r">Forks ⑂</th>
-            <th class="r">Commits 14d</th>
+            <th class="r">Stars ⭐ <span style="font-weight:400;color:var(--dim)">${starsMode==='14d'?'14d':'all'}</span></th>
+            <th class="r">Forks ⑂ <span style="font-weight:400;color:var(--dim)">${forksMode==='14d'?'14d':'all'}</span></th>
+            <th class="r">Commits <span style="font-weight:400;color:var(--dim)">14d</span></th>
           </tr>
         </thead>
         <tbody>
@@ -861,8 +861,8 @@ function renderAllPrograms() {
               <td class="nc muted">${fmtK(vu)}</td>
               <td class="nc green">${fmtK(c)}</td>
               <td class="nc muted">${fmtK(cu)}</td>
-              <td class="nc orange">${fmtK(s)}</td>
-              <td class="nc purple">${fmtK(f)}</td>
+              <td class="nc orange">${fmtK(starsMode==='14d' ? sn : s)}</td>
+              <td class="nc purple">${fmtK(forksMode==='14d' ? fn : f)}</td>
               <td class="nc" style="color:var(--muted)">${fmtK(cm)}</td>
             </tr>`).join('')}
         </tbody>
@@ -873,8 +873,8 @@ function renderAllPrograms() {
             <td class="nc muted">${fmtK(totVU)}</td>
             <td class="nc green">${fmtK(totC)}</td>
             <td class="nc muted">${fmtK(totCU)}</td>
-            <td class="nc orange">${fmtK(totS)}</td>
-            <td class="nc purple">${fmtK(totF)}</td>
+            <td class="nc orange">${fmtK(starsMode==='14d' ? totSNew : totS)}</td>
+            <td class="nc purple">${fmtK(forksMode==='14d' ? totFNew : totF)}</td>
             <td class="nc" style="color:var(--muted)">${fmtK(totCm14)}</td>
           </tr>
         </tfoot>
