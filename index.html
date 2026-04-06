@@ -644,8 +644,8 @@ function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, fork
     <!-- Stars — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${sLife?'on':''}"  data-fn="setStarsMode" data-val="lifetime">All time</button>
         <button class="ctgl ${!sLife?'on':''}" data-fn="setStarsMode" data-val="14d">14d new</button>
+        <button class="ctgl ${sLife?'on':''}"  data-fn="setStarsMode" data-val="lifetime">All time</button>
       </div>
       <div class="sum-val" style="color:var(--orange)">${fmtK(sLife ? stars : starsNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Stars ⭐</div>
@@ -654,8 +654,8 @@ function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, fork
     <!-- Forks — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${fLife?'on':''}"  data-fn="setForksMode" data-val="lifetime">All time</button>
         <button class="ctgl ${!fLife?'on':''}" data-fn="setForksMode" data-val="14d">14d new</button>
+        <button class="ctgl ${fLife?'on':''}"  data-fn="setForksMode" data-val="lifetime">All time</button>
       </div>
       <div class="sum-val" style="color:var(--purple)">${fmtK(fLife ? forks : forksNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Forks ⑂</div>
