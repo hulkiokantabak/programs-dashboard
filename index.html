@@ -359,7 +359,7 @@ async function fetchCommitStats(name) {
   const path  = `/repos/${OWNER}/${name}/stats/commit_activity`;
   const data  = await gh(path);
   if (data !== null) return data;
-  if (!retrying.has(name)) { retrying.add(name); bgRetry(name, path, [45000, 90000, 180000]); }
+  if (!retrying.has(name)) { retrying.add(name); bgRetry(name, path, [3000, 6000, 12000, 25000, 60000, 120000, 240000]); }
   return null;
 }
 async function bgRetry(name, path, delays) {
