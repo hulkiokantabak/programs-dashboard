@@ -355,8 +355,8 @@ const PROGRAMS = [
 // ═══════════════════════════════════════════════════════
 let token       = '';
 let currentView = 'all';     // 'all' | program.name
-let starsMode   = 'lifetime'; // stars: 'lifetime' | '14d'
-let forksMode   = 'lifetime'; // forks: 'lifetime' | '14d'
+let starsMode   = '14d';      // stars: '14d' | 'lifetime'
+let forksMode   = '14d';      // forks: '14d' | 'lifetime'
 let cmtMode     = '14d';      // commits:       '14d'      | '52w'
 const cache     = {};
 const retrying  = new Set();
@@ -870,7 +870,7 @@ function renderAllPrograms() {
     totV   += v; totVU  += vu; totC   += c; totCU  += cu;
     totS   += s; totSNew+= sn; totF   += f; totFNew+= fn;
     totCm14+= cm; totCm52+= cm52;
-    return { prog, v, vu, c, cu, s, sn, f, fn, cm };
+    return { prog, v, vu, c, cu, s, sn, f, fn, cm, cm52 };
   });
 
   // Combined daily traffic (total + unique per day, summed across programs)
@@ -935,11 +935,11 @@ function renderAllPrograms() {
             <th class="r">Unique</th>
             <th class="r">Stars ⭐ <span style="font-weight:400;color:var(--dim)">${starsMode==='14d'?'14d':'all'}</span></th>
             <th class="r">Forks ⑂ <span style="font-weight:400;color:var(--dim)">${forksMode==='14d'?'14d':'all'}</span></th>
-            <th class="r">Commits <span style="font-weight:400;color:var(--dim)">14d</span></th>
+            <th class="r">Commits <span style="font-weight:400;color:var(--dim)">${cmtMode==='14d'?'14d':'52w'}</span></th>
           </tr>
         </thead>
         <tbody>
-          ${rows.map(({prog,v,vu,c,cu,s,sn,f,fn,cm}) => `
+          ${rows.map(({prog,v,vu,c,cu,s,sn,f,fn,cm,cm52}) => `
             <tr onclick="navigate('${prog.name}')">
               <td><div class="prog-name-cell">${prog.icon} ${prog.display}
                 <span class="tag-sm">${prog.tag}</span></div></td>
@@ -949,7 +949,7 @@ function renderAllPrograms() {
               <td class="nc muted">${fmtK(cu)}</td>
               <td class="nc orange">${fmtK(starsMode==='14d' ? sn : s)}</td>
               <td class="nc purple">${fmtK(forksMode==='14d' ? fn : f)}</td>
-              <td class="nc" style="color:var(--muted)">${fmtK(cm)}</td>
+              <td class="nc" style="color:var(--muted)">${fmtK(cmtMode==='14d' ? cm : cm52)}</td>
             </tr>`).join('')}
         </tbody>
         <tfoot>
@@ -961,7 +961,7 @@ function renderAllPrograms() {
             <td class="nc muted">${fmtK(totCU)}</td>
             <td class="nc orange">${fmtK(starsMode==='14d' ? totSNew : totS)}</td>
             <td class="nc purple">${fmtK(forksMode==='14d' ? totFNew : totF)}</td>
-            <td class="nc" style="color:var(--muted)">${fmtK(totCm14)}</td>
+            <td class="nc" style="color:var(--muted)">${fmtK(cmtMode==='14d' ? totCm14 : totCm52)}</td>
           </tr>
         </tfoot>
       </table>
