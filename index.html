@@ -280,6 +280,24 @@
     .gc-bar-track { flex:1; height:6px; background:var(--surf2); border-radius:3px; overflow:hidden; }
     .gc-bar-fill  { height:100%; border-radius:3px; opacity:.8; }
     .gc-bar-count { min-width:32px; text-align:right; color:var(--muted); font-size:.7rem; flex-shrink:0; }
+    /* Pages table */
+    .gc-pages-table { width:100%; border-collapse:collapse; font-size:.79rem; }
+    .gc-pages-table th { font-size:.61rem; font-weight:700; text-transform:uppercase;
+                         letter-spacing:.06em; color:var(--dim); padding:0 8px 8px 0;
+                         border-bottom:1px solid var(--border); }
+    .gc-pages-table th.r { text-align:right; }
+    .gc-pages-table td { padding:6px 8px 6px 0; border-bottom:1px solid var(--border2);
+                         vertical-align:middle; }
+    .gc-pages-table tbody tr:last-child td { border-bottom:none; }
+    .gc-pages-path  { color:var(--text); font-family:monospace; font-size:.76rem;
+                      word-break:break-all; }
+    .gc-pages-title { color:var(--dim); font-size:.68rem; margin-top:1px; }
+    .gc-pages-spark { width:90px; min-width:90px; }
+    .gc-pages-count { text-align:right; color:var(--muted); font-weight:600; white-space:nowrap; }
+    .gc-pages-pct   { text-align:right; color:var(--dim); font-size:.7rem; white-space:nowrap;
+                      min-width:38px; }
+    .gc-pages-tfoot td { font-weight:600; color:var(--text); border-top:1px solid var(--border);
+                         padding-top:8px; }
   </style>
 </head>
 <body>
@@ -1111,7 +1129,7 @@ async function loadGcData() {
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const endpoints = [
     [`/stats/total${qs}`,                'total'],
-    [`/stats/hits${qs}&limit=10`,        'hits'],
+    [`/stats/hits${qs}&limit=20`,        'hits'],
     [`/stats/toprefs${qs}&limit=10`,     'refs'],
     [`/stats/browsers${qs}&limit=10`,    'browsers'],
     [`/stats/systems${qs}&limit=10`,     'systems'],
@@ -1247,24 +1265,64 @@ function renderAnalytics() {
         </div>
       </div>
 
+      <!-- Totals: aggregate daily chart -->
       ${dailyPts.length > 0 ? `
       <div class="section">
         <div class="sec-hdr">
-          <span class="sec-title">📈 Daily Pageviews</span>
-          <span class="period" style="color:var(--dim)">· last ${gcTimeRange}</span>
+          <span class="sec-title">📊 Totals</span>
+          <span class="period" style="color:var(--dim)">· all pages combined · last ${gcTimeRange}</span>
         </div>
         <div class="chart-wrap" style="height:150px"><canvas id="gc-daily"></canvas></div>
       </div>` : ''}
 
-      <div class="traffic-cols">
-        <div class="section">
-          <div class="sec-hdr"><span class="sec-title">🔗 Top Pages</span></div>
-          ${hits.length ? hits.slice(0,8).map(h => barRow(h.path||'/', h.count, maxHits, sumHits, 'var(--blue)')).join('') : noData}
+      <!-- Pages: per-page breakdown (primary data) -->
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">📄 Pages</span>
+          <span class="period" style="color:var(--dim)">· ${hits.length}${gcCache.hits?.more ? '+' : ''} path${hits.length !== 1 ? 's' : ''} · last ${gcTimeRange}</span>
         </div>
-        <div class="section">
-          <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
-          ${refs.length ? refs.slice(0,8).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData}
-        </div>
+        ${hits.length ? `
+        <div class="prog-table-wrap">
+          <table class="gc-pages-table">
+            <thead>
+              <tr>
+                <th>Path &amp; Title</th>
+                <th style="width:94px">Trend</th>
+                <th class="r">Views</th>
+                <th class="r">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${hits.map((h, i) => {
+                const pct = total?.total ? Math.round((h.count / total.total) * 100) : '—';
+                return `<tr>
+                  <td>
+                    <div class="gc-pages-path">${h.path || '/'}</div>
+                    ${h.title ? `<div class="gc-pages-title">${h.title}</div>` : ''}
+                  </td>
+                  <td class="gc-pages-spark">
+                    <canvas id="gc-spark-${i}" style="width:90px;height:24px;display:block"></canvas>
+                  </td>
+                  <td class="gc-pages-count">${fmtK(h.count)}</td>
+                  <td class="gc-pages-pct">${pct}%</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+            <tfoot>
+              <tr class="gc-pages-tfoot">
+                <td colspan="2">Total</td>
+                <td class="gc-pages-count">${fmtK(total?.total ?? 0)}</td>
+                <td class="gc-pages-pct">100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>` : noData}
+      </div>
+
+      <!-- Top Referrers -->
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
+        ${refs.length ? refs.slice(0,10).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData}
       </div>
 
       <div class="traffic-cols">
@@ -1296,9 +1354,24 @@ function renderAnalytics() {
     `}
   `;
 
-  if (hasToken && !loading && !err && dailyPts.length > 0) {
+  if (hasToken && !loading && !err) {
     requestAnimationFrame(() => {
-      drawBars(document.getElementById('gc-daily'), dailyPts, cssVar('--blue'), 'views');
+      // Totals daily chart
+      if (dailyPts.length > 0) {
+        drawBars(document.getElementById('gc-daily'), dailyPts, cssVar('--blue'), 'views');
+      }
+      // Per-page sparklines
+      hits.forEach((h, i) => {
+        const canvas = document.getElementById(`gc-spark-${i}`);
+        if (!canvas) return;
+        const pts = (h.stats || []).map(s => ({
+          label: (s.day || '').slice(5, 10),
+          val:   s.daily || 0,
+          uniq:  0
+        }));
+        if (pts.length) drawSparkline(canvas, pts, cssVar('--blue'));
+        else drawNoData(canvas);
+      });
     });
   }
 }
