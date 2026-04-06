@@ -544,6 +544,17 @@ document.addEventListener('mousemove', e => {
 });
 document.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
 
+// ── Delegated toggle handler (replaces inline onclick on ctgl buttons) ──
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-fn]');
+  if (!btn) return;
+  const fn  = btn.getAttribute('data-fn');
+  const val = btn.getAttribute('data-val');
+  if      (fn === 'setStarsMode') setStarsMode(val);
+  else if (fn === 'setForksMode') setForksMode(val);
+  else if (fn === 'setCmtMode')   setCmtMode(val);
+});
+
 // ═══════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════
@@ -633,32 +644,32 @@ function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, fork
     <!-- Stars — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${sLife?'on':''}"  onclick="setStarsMode('lifetime')">All time</button>
-        <button class="ctgl ${!sLife?'on':''}" onclick="setStarsMode('14d')">14d new</button>
+        <button class="ctgl ${sLife?'on':''}"  data-fn="setStarsMode" data-val="lifetime">All time</button>
+        <button class="ctgl ${!sLife?'on':''}" data-fn="setStarsMode" data-val="14d">14d new</button>
       </div>
       <div class="sum-val" style="color:var(--orange)">${fmtK(sLife ? stars : starsNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Stars ⭐</div>
-      <div class="sum-sub">${sLife ? 'all time total' : `${sign(starsNew)} in 14d`}</div>
+      <div class="sum-sub">${sLife ? 'all time total' : sign(starsNew) + ' in 14d'}</div>
     </div>
     <!-- Forks — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${fLife?'on':''}"  onclick="setForksMode('lifetime')">All time</button>
-        <button class="ctgl ${!fLife?'on':''}" onclick="setForksMode('14d')">14d new</button>
+        <button class="ctgl ${fLife?'on':''}"  data-fn="setForksMode" data-val="lifetime">All time</button>
+        <button class="ctgl ${!fLife?'on':''}" data-fn="setForksMode" data-val="14d">14d new</button>
       </div>
       <div class="sum-val" style="color:var(--purple)">${fmtK(fLife ? forks : forksNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Forks ⑂</div>
-      <div class="sum-sub">${fLife ? 'all time total' : `${sign(forksNew)} in 14d`}</div>
+      <div class="sum-sub">${fLife ? 'all time total' : sign(forksNew) + ' in 14d'}</div>
     </div>
     <!-- Commits -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${cmtIs14?'on':''}"  onclick="setCmtMode('14d')">14 days</button>
-        <button class="ctgl ${!cmtIs14?'on':''}" onclick="setCmtMode('52w')">52 weeks</button>
+        <button class="ctgl ${cmtIs14?'on':''}"  data-fn="setCmtMode" data-val="14d">14 days</button>
+        <button class="ctgl ${!cmtIs14?'on':''}" data-fn="setCmtMode" data-val="52w">52 weeks</button>
       </div>
       <div class="sum-val" style="color:var(--muted)">${fmtK(cmtIs14 ? c14 : c52)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--muted)"></span>Commits 🔨</div>
-      <div class="sum-sub">${cmtIs14 ? 'last 14 days' : 'last 52 weeks'}${computing ? ' · <span style="color:var(--orange)">⏳</span>' : ''}</div>
+      <div class="sum-sub">${cmtIs14 ? 'last 14 days' : 'last 52 weeks'}${computing ? ' · ⏳' : ''}</div>
     </div>
   </div>`;
 }
