@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hulki's Programs Dashboard</title>
   <style>
-    /* ═══════════════════════════════════════════
-       THEME VARIABLES
-    ═══════════════════════════════════════════ */
+    /* ── THEME ── */
     :root {
       --bg:       #0d1117;
       --surf:     #161b22;
@@ -24,7 +22,7 @@
       --purple:   #bc8cff;
       --orange:   #d29922;
       --red:      #f85149;
-      --shadow:   rgba(0,0,0,.4);
+      --shadow:   rgba(0,0,0,.42);
     }
     html.light {
       --bg:       #ffffff;
@@ -42,312 +40,184 @@
       --purple:   #8250df;
       --orange:   #9a6700;
       --red:      #cf222e;
-      --shadow:   rgba(0,0,0,.12);
+      --shadow:   rgba(0,0,0,.1);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* ═══════════════════════════════════════════
-       LAYOUT SHELL
-    ═══════════════════════════════════════════ */
+    /* ── SHELL ── */
     .shell { display: flex; height: 100vh; }
 
-    /* ═══════════════════════════════════════════
-       SIDEBAR
-    ═══════════════════════════════════════════ */
-    .sidebar {
-      width: 252px; min-width: 252px;
-      background: var(--surf);
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      overflow: hidden;
-    }
-    .sidebar-top {
-      padding: 15px 16px 13px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .brand     { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 7px; }
-    .brand-sub { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
-
+    /* ── SIDEBAR ── */
+    .sidebar { width: 252px; min-width: 252px; background: var(--surf);
+               border-right: 1px solid var(--border); display: flex;
+               flex-direction: column; overflow: hidden; }
+    .sidebar-top { padding: 15px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .brand     { font-weight: 700; font-size: .9rem; display: flex; align-items: center; gap: 7px; }
+    .brand-sub { font-size: .68rem; color: var(--muted); margin-top: 3px; }
     .sidebar-nav { flex: 1; overflow-y: auto; padding: 7px 0 4px; }
-
-    .nav-section { font-size: 0.61rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .09em; color: var(--dim); padding: 10px 16px 4px; }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 10px 7px 14px;
-      margin: 1px 5px; border-radius: 7px;
-      cursor: pointer; transition: background .11s;
-      user-select: none;
-    }
+    .nav-section { font-size: .6rem; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: .09em; color: var(--dim); padding: 10px 16px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 14px;
+                margin: 1px 5px; border-radius: 7px; cursor: pointer;
+                transition: background .11s; user-select: none; }
     .nav-item:hover  { background: var(--surf2); }
     .nav-item.active { background: color-mix(in srgb, var(--blue-btn) 12%, transparent); }
     .nav-item.active .nav-name  { color: var(--blue); }
-    .nav-item.active .nav-badge { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 40%, transparent); }
-
-    .nav-icon  { font-size: .95rem; flex-shrink: 0; line-height: 1; width: 18px; text-align: center; }
+    .nav-item.active .nav-badge { color: var(--blue);
+      border-color: color-mix(in srgb, var(--blue) 40%, transparent); }
+    .nav-icon  { font-size: .95rem; flex-shrink: 0; width: 18px; text-align: center; }
     .nav-text  { flex: 1; min-width: 0; }
-    .nav-name  { font-size: .8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-name  { font-size: .8rem; font-weight: 600; white-space: nowrap;
+                 overflow: hidden; text-overflow: ellipsis; }
     .nav-cat   { font-size: .61rem; color: var(--muted); margin-top: 1px; }
     .nav-item.active .nav-cat { color: color-mix(in srgb, var(--blue) 65%, var(--muted)); }
-    .nav-badge {
-      font-size: .62rem; font-weight: 700; color: var(--dim);
-      background: var(--surf2); border: 1px solid var(--border2);
-      border-radius: 20px; padding: 1px 7px; flex-shrink: 0; transition: all .12s;
-    }
-    /* Sidebar quick-launch button — appears on hover */
-    .nav-launch {
-      text-decoration: none; color: var(--muted); font-size: .72rem;
-      padding: 3px 6px; border-radius: 5px; border: 1px solid var(--border);
-      flex-shrink: 0; opacity: 0; transition: opacity .12s, color .12s;
-      background: var(--surf2); line-height: 1;
-    }
+    .nav-badge { font-size: .62rem; font-weight: 700; color: var(--dim);
+                 background: var(--surf2); border: 1px solid var(--border2);
+                 border-radius: 20px; padding: 1px 7px; flex-shrink: 0; }
+    .nav-launch { text-decoration: none; color: var(--muted); font-size: .72rem;
+                  padding: 3px 6px; border-radius: 5px; border: 1px solid var(--border);
+                  flex-shrink: 0; opacity: 0; transition: opacity .12s, color .12s;
+                  background: var(--surf2); }
     .nav-item:hover .nav-launch { opacity: 1; }
     .nav-launch:hover { color: var(--green); border-color: var(--green); }
-
     .nav-hint { font-size: .63rem; color: var(--dim); padding: 10px 16px 4px; font-style: italic; }
-
-    /* ─── sidebar footer ─── */
-    .sidebar-footer {
-      border-top: 1px solid var(--border);
-      padding: 11px 12px 13px;
-      flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
-    }
+    .sidebar-footer { border-top: 1px solid var(--border); padding: 11px 12px 13px;
+                      flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
     .token-row { display: flex; align-items: center; gap: 6px; }
-    .token-row input {
-      flex: 1; min-width: 0;
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 5px; color: var(--text);
-      font-size: .71rem; padding: 4px 8px; outline: none;
-    }
+    .token-row input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border);
+                       border-radius: 5px; color: var(--text); font-size: .71rem;
+                       padding: 4px 8px; outline: none; }
     .token-row input:focus { border-color: var(--blue); }
     .tok-status { font-size: .66rem; }
     .tok-ok   { color: var(--green); }
     .tok-warn { color: var(--orange); }
     .footer-row { display: flex; align-items: center; gap: 7px; }
-    .btn {
-      cursor: pointer; border: none; border-radius: 6px;
-      font-size: .75rem; font-weight: 600; padding: 5px 11px;
-      transition: opacity .15s; white-space: nowrap;
-    }
+    .btn { cursor: pointer; border: none; border-radius: 6px; font-size: .75rem;
+           font-weight: 600; padding: 5px 11px; transition: opacity .15s; white-space: nowrap; }
     .btn:hover { opacity: .82; }
     .btn-ghost { background: var(--surf2); color: var(--muted); border: 1px solid var(--border); }
     .btn-green { background: var(--green-btn); color: #fff; }
     .btn-icon  { padding: 5px 7px; font-size: .9rem; background: none;
                  border: 1px solid var(--border); border-radius: 6px; color: var(--muted); }
-    .last-upd  { font-size: .62rem; color: var(--dim); margin-left: auto; text-align: right; }
+    .last-upd  { font-size: .62rem; color: var(--dim); margin-left: auto; }
 
-    /* ═══════════════════════════════════════════
-       MAIN PANEL
-    ═══════════════════════════════════════════ */
+    /* ── MAIN ── */
     .main { flex: 1; overflow-y: auto; background: var(--bg); }
-    .main-inner { padding: 28px 34px 48px; max-width: 1000px; }
+    .main-inner { padding: 28px 34px 52px; max-width: 1020px; }
 
-    /* ─── program header ─── */
-    .prog-header {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 16px;
-      margin-bottom: 24px; padding-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-    }
-    .prog-title { font-size: 1.6rem; font-weight: 700;
-      display: flex; align-items: center; gap: 9px; line-height: 1.1; flex-wrap: wrap; }
-    .prog-tag {
-      font-size: .67rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
-      background: var(--surf2); color: var(--dim); border: 1px solid var(--border2);
-    }
-    .prog-desc { font-size: .83rem; color: var(--muted); margin-top: 6px; }
-    .prog-btns { display: flex; gap: 7px; flex-shrink: 0; margin-top: 3px; }
-    a.pbtn {
-      text-decoration: none; display: flex; align-items: center; gap: 5px;
-      padding: 7px 14px; border-radius: 7px; font-size: .79rem; font-weight: 600;
-      border: 1px solid var(--border); color: var(--muted); background: var(--surf);
-      transition: all .14s; white-space: nowrap;
-    }
+    /* ── PROGRAM HEADER ── */
+    .prog-header { display: flex; align-items: flex-start; justify-content: space-between;
+                   gap: 16px; margin-bottom: 22px; padding-bottom: 18px;
+                   border-bottom: 1px solid var(--border); }
+    .prog-title { font-size: 1.6rem; font-weight: 700; display: flex; align-items: center;
+                  gap: 9px; line-height: 1.1; flex-wrap: wrap; }
+    .prog-tag   { font-size: .67rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+                  background: var(--surf2); color: var(--dim); border: 1px solid var(--border2); }
+    .prog-desc  { font-size: .83rem; color: var(--muted); margin-top: 5px; }
+    .prog-btns  { display: flex; gap: 7px; flex-shrink: 0; margin-top: 2px; }
+    a.pbtn { text-decoration: none; display: flex; align-items: center; gap: 5px;
+             padding: 7px 14px; border-radius: 7px; font-size: .79rem; font-weight: 600;
+             border: 1px solid var(--border); color: var(--muted); background: var(--surf);
+             transition: all .14s; white-space: nowrap; }
     a.pbtn:hover { border-color: var(--blue); color: var(--blue); }
     a.pbtn.play  { background: var(--blue-btn); border-color: var(--blue-btn); color: #fff; }
     a.pbtn.play:hover { opacity: .88; }
 
-    /* ═══════════════════════════════════════════
-       SECTIONS
-    ═══════════════════════════════════════════ */
+    /* ── SUMMARY STAT CARDS ── */
+    .sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px,1fr));
+                gap: 11px; margin-bottom: 24px; }
+    .sum-card { background: var(--surf); border: 1px solid var(--border);
+                border-radius: 11px; padding: 14px 16px 13px;
+                display: flex; flex-direction: column; }
+    .card-tgl { display: flex; background: var(--surf2); border: 1px solid var(--border2);
+                border-radius: 5px; overflow: hidden; width: fit-content; margin-bottom: 9px; }
+    .ctgl { cursor: pointer; background: none; border: none; font-size: .62rem;
+            font-weight: 700; padding: 3px 9px; color: var(--dim); transition: all .12s;
+            letter-spacing: .02em; }
+    .ctgl:hover { color: var(--text); }
+    .ctgl.on { background: var(--blue-btn); color: #fff; }
+    .sum-val  { font-size: 1.85rem; font-weight: 700; line-height: 1; margin-top: auto; }
+    .sum-lbl  { font-size: .68rem; color: var(--muted); margin-top: 5px;
+                display: flex; align-items: center; gap: 4px; }
+    .sum-sub  { font-size: .62rem; color: var(--dim); margin-top: 2px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+    /* ── SECTIONS ── */
     .section { margin-bottom: 22px; }
-    .sec-hdr {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 13px;
-    }
-    .sec-title {
-      font-size: .66rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .07em; color: var(--dim);
-    }
-    .period { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--dim); }
-    .spacer { flex: 1; }
+    .sec-hdr  { display: flex; align-items: center; gap: 8px; margin-bottom: 13px; }
+    .sec-title { font-size: .66rem; font-weight: 700; text-transform: uppercase;
+                 letter-spacing: .07em; color: var(--dim); }
+    .period { font-weight: 400; text-transform: none; letter-spacing: 0; }
 
-    /* Toggle group */
-    .tgl-grp { display: flex; background: var(--surf2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .tgl-btn {
-      cursor: pointer; background: none; border: none; color: var(--dim);
-      font-size: .67rem; font-weight: 600; padding: 3px 9px;
-      transition: all .12s; white-space: nowrap;
-    }
-    .tgl-btn:hover  { color: var(--text); }
-    .tgl-btn.on     { background: var(--blue-btn); color: #fff; }
+    /* ── CHART LEGEND ── */
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 9px; }
+    .leg-item { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: var(--muted); }
+    .leg-dot  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .leg-line { display: flex; align-items: center; gap: 5px; font-size: .66rem; color: var(--dim); }
+    .leg-swatch { width: 20px; height: 3px; border-radius: 2px; }
 
-    /* ═══════════════════════════════════════════
-       TRAFFIC
-    ═══════════════════════════════════════════ */
-    .traffic-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .col-lbl { font-size: .73rem; color: var(--muted); margin-bottom: 8px;
-               display: flex; align-items: center; gap: 6px; }
-    .stat-pair { display: flex; gap: 16px; margin-bottom: 10px; }
-    .stat-mini { display: flex; align-items: baseline; gap: 5px; }
-    .stat-num  { font-size: 1.25rem; font-weight: 700; line-height: 1; }
-    .stat-sub  { font-size: .63rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
-    .chart-wrap { height: 108px; }
+    /* ── TRAFFIC ── */
+    .traffic-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .chart-wrap { position: relative; }
     canvas { width: 100%; height: 100%; display: block; }
 
-    /* ═══════════════════════════════════════════
-       ENGAGEMENT
-    ═══════════════════════════════════════════ */
-    .eng-row { display: flex; gap: 11px; }
-    .eng-cell {
-      flex: 1; background: var(--surf); border: 1px solid var(--border2);
-      border-radius: 10px; padding: 13px 15px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px;
-    }
-    .eng-main { font-size: 1.45rem; font-weight: 700; line-height: 1; }
-    .eng-aux  { font-size: .77rem; font-weight: 600; display: flex; align-items: center; }
-    .eng-aux.pos  { color: var(--green); }
-    .eng-aux.zero { color: var(--dim); }
-    .eng-lbl  { font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
-    .eng-sub  { font-size: .62rem; color: var(--dim); margin-top: 2px; }
-
-    /* ═══════════════════════════════════════════
-       COMMITS
-    ═══════════════════════════════════════════ */
-    .commits-row { display: flex; gap: 13px; align-items: stretch; }
-    .commit-box {
-      background: var(--surf); border: 1px solid var(--border2);
-      border-radius: 10px; padding: 13px 17px; min-width: 96px;
-      display: flex; flex-direction: column; justify-content: center;
-      transition: border-color .15s;
-    }
-    .commit-box.hi { border-color: var(--purple); }
-    .commit-num { font-size: 1.6rem; font-weight: 700; line-height: 1; }
-    .commit-lbl { font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
-    .spark-box  {
-      flex: 1; background: var(--surf); border: 1px solid var(--border2);
-      border-radius: 10px; padding: 11px 15px;
-    }
-    .spark-hdr  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    /* ── SPARKLINE ── */
+    .spark-box { background: var(--surf); border: 1px solid var(--border2);
+                 border-radius: 10px; padding: 12px 16px; }
+    .spark-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .spark-lbl  { font-size: .65rem; color: var(--dim); }
     .spark-stat { font-size: .65rem; color: var(--orange); }
-    .spark-wrap { height: 50px; }
+    .spark-wrap { height: 52px; }
 
-    /* ═══════════════════════════════════════════
-       EMBED / RUN
-    ═══════════════════════════════════════════ */
-    .run-section {
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 12px; overflow: hidden; margin-bottom: 22px;
-    }
-    .run-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 16px; border-bottom: 1px solid var(--border2);
-    }
-    .run-title  { font-size: .82rem; font-weight: 700; flex: 1; }
-    .run-iframe { width: 100%; height: 620px; border: none; display: block; background: var(--bg); }
-    .run-placeholder {
-      height: 120px; display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 10px; color: var(--dim);
-    }
-    .run-placeholder p { font-size: .8rem; }
-    .run-cta {
-      display: flex; align-items: center; gap: 7px;
-      padding: 8px 15px; border-radius: 8px; border: none;
-      background: var(--green-btn); color: #fff;
-      font-size: .82rem; font-weight: 700; cursor: pointer;
-      transition: opacity .14s;
-    }
-    .run-cta:hover { opacity: .87; }
-
-    /* ═══════════════════════════════════════════
-       ALL-PROGRAMS VIEW
-    ═══════════════════════════════════════════ */
-    .all-hdr { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+    /* ── ALL-PROGRAMS HEADER ── */
+    .all-hdr  { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
     .all-title { font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 9px; }
     .all-sub   { font-size: .83rem; color: var(--muted); margin-top: 5px; }
 
-    .sum-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; margin-bottom: 22px; }
-    .sum-card { background: var(--surf); border: 1px solid var(--border); border-radius: 10px; padding: 15px 17px; }
-    .sum-val  { font-size: 1.85rem; font-weight: 700; line-height: 1; }
-    .sum-lbl  { font-size: .68rem; color: var(--muted); margin-top: 5px; display: flex; align-items: center; gap: 4px; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-
-    /* Programs table */
+    /* ── PROGRAMS TABLE ── */
     .prog-table { width: 100%; border-collapse: collapse; font-size: .81rem; }
-    .prog-table th {
-      text-align: left; font-size: .61rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .06em;
-      color: var(--dim); padding: 5px 11px 8px;
-      border-bottom: 1px solid var(--border);
-    }
+    .prog-table th { text-align: left; font-size: .61rem; font-weight: 700;
+                     text-transform: uppercase; letter-spacing: .06em; color: var(--dim);
+                     padding: 5px 10px 8px; border-bottom: 1px solid var(--border); }
     .prog-table th.r { text-align: right; }
-    .prog-table td   { padding: 10px 11px; border-bottom: 1px solid var(--border2); vertical-align: middle; }
+    .prog-table td   { padding: 10px 10px; border-bottom: 1px solid var(--border2); vertical-align: middle; }
     .prog-table tbody tr { cursor: pointer; transition: background .09s; }
     .prog-table tbody tr:hover td { background: var(--surf2); }
     .prog-table tbody tr:last-child td { border-bottom: none; }
     .prog-name-cell { display: flex; align-items: center; gap: 7px; font-weight: 600; }
-    .tag-sm {
-      font-size: .59rem; color: var(--dim); background: var(--surf2);
-      border: 1px solid var(--border2); border-radius: 10px; padding: 1px 6px; flex-shrink: 0;
-    }
-    .nc       { font-weight: 700; text-align: right; }
-    .nc.blue   { color: var(--blue); }
-    .nc.green  { color: var(--green); }
-    .nc.orange { color: var(--orange); }
-    .nc.purple { color: var(--purple); }
-    tfoot tr td {
-      font-weight: 700; font-size: .84rem;
-      background: var(--surf2) !important;
-      border-top: 2px solid var(--border); border-bottom: none !important;
-    }
+    .tag-sm { font-size: .59rem; color: var(--dim); background: var(--surf2);
+              border: 1px solid var(--border2); border-radius: 10px; padding: 1px 6px; flex-shrink: 0; }
+    .nc         { font-weight: 700; text-align: right; }
+    .nc.blue    { color: var(--blue); }
+    .nc.green   { color: var(--green); }
+    .nc.orange  { color: var(--orange); }
+    .nc.purple  { color: var(--purple); }
+    .nc.muted   { color: var(--muted); }
+    tfoot tr td { font-weight: 700; font-size: .84rem;
+                  background: var(--surf2) !important;
+                  border-top: 2px solid var(--border); border-bottom: none !important; }
 
-    /* GoatCounter */
-    .gc-banner {
-      background: var(--surf); border: 1px solid var(--border); border-radius: 12px;
-      padding: 15px 19px; margin-top: 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
-    }
+    /* ── GOATCOUNTER ── */
+    .gc-banner { background: var(--surf); border: 1px solid var(--border); border-radius: 12px;
+                 padding: 15px 19px; margin-top: 24px;
+                 display: flex; align-items: center; justify-content: space-between;
+                 gap: 12px; flex-wrap: wrap; }
     .gc-banner h3 { font-size: .87rem; font-weight: 700; margin-bottom: 3px; }
     .gc-banner p  { font-size: .74rem; color: var(--muted); }
-    .gc-links     { display: flex; gap: 7px; }
-    a.gc-link {
-      text-decoration: none; color: var(--muted); font-size: .74rem;
-      padding: 5px 11px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; display: flex; align-items: center; gap: 4px; transition: all .14s;
-    }
+    .gc-links { display: flex; gap: 7px; }
+    a.gc-link { text-decoration: none; color: var(--muted); font-size: .74rem; padding: 5px 11px;
+                background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+                display: flex; align-items: center; gap: 4px; transition: all .14s; }
     a.gc-link:hover { border-color: var(--green); color: var(--green); }
 
-    /* Tooltip */
-    .tooltip {
-      position: fixed; pointer-events: none; z-index: 300;
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 7px; padding: 6px 10px; font-size: .72rem;
-      opacity: 0; transition: opacity .1s; white-space: nowrap;
-      box-shadow: 0 4px 14px var(--shadow);
-    }
+    /* ── TOOLTIP ── */
+    .tooltip { position: fixed; pointer-events: none; z-index: 300; background: var(--surf);
+               border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px;
+               font-size: .72rem; opacity: 0; transition: opacity .1s; white-space: nowrap;
+               box-shadow: 0 4px 14px var(--shadow); }
     .tt-lbl { color: var(--muted); }
     .tt-val { color: var(--text); font-weight: 600; }
 
@@ -359,15 +229,13 @@
 
 <div class="shell">
 
-  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-top">
       <div class="brand">🖥 Programs Dashboard</div>
       <div class="brand-sub">hulkiokantabak</div>
     </div>
-
-    <nav class="sidebar-nav" id="sidebarNav"><!-- built by JS --></nav>
-
+    <nav class="sidebar-nav" id="sidebarNav"><!-- JS --></nav>
     <div class="sidebar-footer">
       <div class="token-row">
         <input type="password" id="tokenInput" placeholder="GitHub token (ghp_…)" oninput="saveToken()" />
@@ -384,9 +252,9 @@
     </div>
   </aside>
 
-  <!-- ═══════════ MAIN ═══════════ -->
+  <!-- MAIN -->
   <main class="main">
-    <div class="main-inner" id="mainContent"><!-- rendered by JS --></div>
+    <div class="main-inner" id="mainContent"><!-- JS --></div>
   </main>
 
 </div>
@@ -397,98 +265,56 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  PROGRAMS CONFIG
-//  ─────────────────────────────────────────────────────────────────
-//  To add a new program, copy one entry and fill it in.
-//  `name`    = exact GitHub repo slug (required)
-//  `display` = name shown in the dashboard (required)
-//  `url`     = live URL to open/embed, or null if not deployed
-// ═══════════════════════════════════════════════════════════════════
+//  Add a new program by appending one { } block below.
+//  name = exact GitHub repo slug (required)
+//  url  = live URL, or null
+// ═══════════════════════════════════════════════════════
 const OWNER = 'hulkiokantabak';
-
 const PROGRAMS = [
-  {
-    name:    'bounce-game',
-    display: 'BOUNCE',
-    icon:    '🏀',
-    tag:     'Arcade',
-    desc:    'A one-thumb browser game. The ball drops. You tap. It bounces.',
-    url:     'https://hulkiokantabak.github.io/bounce-game/',
-  },
-  {
-    name:    'trace-game',
-    display: 'Trace',
-    icon:    '🕵️',
-    tag:     'Text Adventure',
-    desc:    'A solo narrative exploration game set in present-day East London.',
-    url:     'https://hulkiokantabak.github.io/trace-game/',
-  },
-  {
-    name:    'heart-quest',
-    display: 'Heart Quest',
-    icon:    '💘',
-    tag:     'Dating Sim',
-    desc:    'A browser dating simulator. 12 characters, 10 locations, 80+ actions.',
-    url:     'https://hulkiokantabak.github.io/heart-quest/',
-  },
-  {
-    name:    'Bosphorus-Ferry',
-    display: 'Bosphorus Ferry',
-    icon:    '⛴️',
-    tag:     'Interactive Fiction',
-    desc:    'A choice-driven text adventure set in Istanbul. 3 episodes, 8 endings.',
-    url:     'https://hulkiokantabak.github.io/Bosphorus-Ferry/',
-  },
-  {
-    name:    'nft-rarity-scorer',
-    display: 'NFT Rarity Scorer',
-    icon:    '🔍',
-    tag:     'Tool',
-    desc:    'Score NFT traits by rarity tiers using OpenSea data. Browser tool.',
-    url:     'https://hulkiokantabak.github.io/nft-rarity-scorer/',
-  },
-  {
-    name:    'programs-dashboard',
-    display: 'Programs Dashboard',
-    icon:    '🖥',
-    tag:     'Meta',
-    desc:    'This dashboard — monitors all programs via GitHub and GoatCounter.',
-    url:     'https://hulkiokantabak.github.io/programs-dashboard/',
-  },
-  // ──────────────────────────────────────────────────────────────────
-  // ADD NEW PROGRAMS HERE — copy & paste one block:
-  // {
-  //   name:    'repo-name-on-github',
-  //   display: 'Display Name',
-  //   icon:    '🎯',
-  //   tag:     'Category',
-  //   desc:    'One-line description.',
-  //   url:     'https://hulkiokantabak.github.io/repo-name/',  // or null
-  // },
-  // ──────────────────────────────────────────────────────────────────
+  { name:'bounce-game',        display:'BOUNCE',             icon:'🏀', tag:'Arcade',
+    desc:'A one-thumb browser game. The ball drops. You tap. It bounces.',
+    url:'https://hulkiokantabak.github.io/bounce-game/' },
+  { name:'trace-game',         display:'Trace',              icon:'🕵️', tag:'Text Adventure',
+    desc:'A solo narrative exploration game set in present-day East London.',
+    url:'https://hulkiokantabak.github.io/trace-game/' },
+  { name:'heart-quest',        display:'Heart Quest',        icon:'💘', tag:'Dating Sim',
+    desc:'A browser dating simulator. 12 characters, 10 locations, 80+ actions.',
+    url:'https://hulkiokantabak.github.io/heart-quest/' },
+  { name:'Bosphorus-Ferry',    display:'Bosphorus Ferry',    icon:'⛴️', tag:'Interactive Fiction',
+    desc:'A choice-driven text adventure set in Istanbul. 3 episodes, 8 endings.',
+    url:'https://hulkiokantabak.github.io/Bosphorus-Ferry/' },
+  { name:'nft-rarity-scorer',  display:'NFT Rarity Scorer',  icon:'🔍', tag:'Tool',
+    desc:'Score NFT traits by rarity tiers using OpenSea data. Browser tool.',
+    url:'https://hulkiokantabak.github.io/nft-rarity-scorer/' },
+  { name:'programs-dashboard', display:'Programs Dashboard', icon:'🖥', tag:'Meta',
+    desc:'This dashboard — monitors all programs via GitHub and GoatCounter.',
+    url:'https://hulkiokantabak.github.io/programs-dashboard/' },
+  // ── ADD NEW PROGRAMS HERE ──────────────────────────────
+  // { name:'repo-slug', display:'Name', icon:'🎯', tag:'Category',
+  //   desc:'Description.', url:'https://hulkiokantabak.github.io/repo-slug/' },
 ];
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 let token       = '';
 let currentView = 'all';     // 'all' | program.name
-let engView     = 'lifetime'; // 'lifetime' | '14d'   — engagement toggle
-let cmtView     = '14d';      // '14d'      | '52w'   — commits toggle
-let iframeOpen  = null;       // name of program whose iframe is open
-const cache     = {};         // { [name]: fetched data }
+let engMode     = 'lifetime'; // stars + forks: 'lifetime' | '14d'
+let cmtMode     = '14d';      // commits:       '14d'      | '52w'
+const cache     = {};
 const retrying  = new Set();
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  THEME
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function toggleTheme() {
-  const toDark = document.documentElement.classList.contains('light');
+  const toDark = !document.documentElement.classList.contains('dark');
   document.documentElement.className = toDark ? 'dark' : 'light';
   document.getElementById('themeBtn').textContent = toDark ? '🌙' : '☀️';
   localStorage.setItem('pd_theme', toDark ? 'dark' : 'light');
-  renderCurrentView(); // redraw charts with new theme colours
+  renderCurrentView();
 }
 function applyTheme() {
   const t = localStorage.getItem('pd_theme') || 'dark';
@@ -496,9 +322,9 @@ function applyTheme() {
   document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  TOKEN  (stored in localStorage — never in code or server)
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  TOKEN  — stored only in browser localStorage
+// ═══════════════════════════════════════════════════════
 function saveToken() {
   token = document.getElementById('tokenInput').value.trim();
   localStorage.setItem('pd_token', token);
@@ -517,93 +343,89 @@ function refreshTokenUI() {
   el.className = 'tok-status ' + (token ? 'tok-ok' : 'tok-warn');
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  GITHUB API
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 async function gh(path, accept) {
   const h = { Accept: accept || 'application/vnd.github+json' };
   if (token) h.Authorization = `Bearer ${token}`;
   const r = await fetch('https://api.github.com' + path, { headers: h });
   if (r.status === 202) return null;
-  if (!r.ok) throw new Error(`${r.status} ${path}`);
+  if (!r.ok) throw new Error(`${r.status}`);
   return r.json();
 }
-
-// Commit-activity returns 202 while GitHub computes; retry in background
 async function fetchCommitStats(name) {
-  const path = `/repos/${OWNER}/${name}/stats/commit_activity`;
+  const path  = `/repos/${OWNER}/${name}/stats/commit_activity`;
   const data  = await gh(path);
   if (data !== null) return data;
-  if (!retrying.has(name)) {
-    retrying.add(name);
-    bgRetryStats(name, path, [45000, 90000, 180000]);
-  }
+  if (!retrying.has(name)) { retrying.add(name); bgRetry(name, path, [45000, 90000, 180000]); }
   return null;
 }
-
-async function bgRetryStats(name, path, delays) {
-  for (const delay of delays) {
-    await sleep(delay);
+async function bgRetry(name, path, delays) {
+  for (const d of delays) {
+    await sleep(d);
     try {
       const data = await gh(path);
       if (data && data.length) {
         if (cache[name]) cache[name].commitStats = data;
         retrying.delete(name);
-        const statusEl = document.getElementById(`${name}-spark-stat`);
-        if (statusEl) statusEl.textContent = '';
+        const el = document.getElementById(`${name}-spark-stat`);
+        if (el) el.textContent = '';
         const sc  = document.getElementById(`${name}-spark`);
-        const pts = data.map(w => ({ label: weekStr(w.week), val: w.total || 0 }));
+        const pts = data.map(w => ({ label: weekStr(w.week), val: w.total||0 }));
         if (sc) requestAnimationFrame(() => drawSparkline(sc, pts, '#bc8cff'));
-        const c52El = document.getElementById(`${name}-c52`);
-        if (c52El) c52El.textContent = fmtK(pts.reduce((s, p) => s + p.val, 0));
-        if (currentView === 'all') renderAllPrograms();
+        if (currentView === 'all' || currentView === name) renderCurrentView();
         return;
       }
     } catch (_) {}
   }
   retrying.delete(name);
 }
-
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ═══════════════════════════════════════════════════════════════════
-//  CANVAS — HELPERS
-// ═══════════════════════════════════════════════════════════════════
-function cssVar(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-function isDark() { return document.documentElement.classList.contains('dark'); }
+// ═══════════════════════════════════════════════════════
+//  CANVAS UTILITIES
+// ═══════════════════════════════════════════════════════
+function cssVar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function isDark()  { return document.documentElement.classList.contains('dark'); }
 
-// ─── Bar chart (with gradients, grid lines, x-axis labels) ───
+// ── Bar chart ─────────────────────────────────────────
+// points: [{ label, val, uniq? }]
+// If uniq is provided, draws a narrower bright inner bar showing unique visitors
 function drawBars(canvas, points, color, key) {
   if (!canvas || !points.length) return;
   const dpr  = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
   if (!rect.width) return;
-
-  const LABEL_H = 15;
+  const LBLH = 16;
   canvas.width  = rect.width  * dpr;
   canvas.height = rect.height * dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
-
   const W = rect.width, H = rect.height;
-  const pL = 5, pR = 5, pT = 7, pB = LABEL_H + 5;
+  const pL = 6, pR = 6, pT = 10, pB = LBLH + 5;
   const cW = W - pL - pR, cH = H - pT - pB;
+  const hasUniq = points.some(p => p.uniq > 0);
+  const maxV    = Math.max(...points.map(p => p.val), 1);
 
-  // Subtle grid lines
-  const gridAlpha = isDark() ? '0.07' : '0.08';
-  ctx.strokeStyle = `rgba(${isDark()?'255,255,255':'0,0,0'},${gridAlpha})`;
+  // Grid lines
+  const ga = isDark() ? .07 : .09;
+  ctx.strokeStyle = isDark() ? `rgba(255,255,255,${ga})` : `rgba(0,0,0,${ga})`;
   ctx.lineWidth   = 0.5;
-  [0.33, 0.66, 1].forEach(t => {
+  [.25, .5, .75, 1].forEach(t => {
     const gy = pT + cH * t;
     ctx.beginPath(); ctx.moveTo(pL, gy); ctx.lineTo(W - pR, gy); ctx.stroke();
   });
 
-  // Bars
-  const maxV = Math.max(...points.map(p => p.val), 1);
-  const gap  = Math.max(1.5, cW * 0.014);
-  const bW   = Math.max(2, cW / points.length - gap);
+  // Max-value label
+  ctx.fillStyle    = cssVar('--dim');
+  ctx.font         = `9px -apple-system, 'Segoe UI', sans-serif`;
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`${maxV}`, pL, 1);
+
+  const gap = Math.max(1.5, cW * .012);
+  const bW  = Math.max(3, cW / points.length - gap);
   canvas._bars = [];
 
   points.forEach((p, i) => {
@@ -612,24 +434,40 @@ function drawBars(canvas, points, color, key) {
     const y  = pT + cH - bH;
 
     if (bH > 0) {
-      const grad = ctx.createLinearGradient(x, y, x, y + bH);
-      grad.addColorStop(0, color);
-      grad.addColorStop(1, color + '3a');
-      ctx.fillStyle = grad;
+      // Outer bar — total (faded gradient)
+      const gOuter = ctx.createLinearGradient(x, y, x, y + bH);
+      gOuter.addColorStop(0, color + 'bb');
+      gOuter.addColorStop(1, color + '1e');
+      ctx.fillStyle = gOuter;
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(x, y, bW, bH, [3, 3, 0, 0]);
+      if (ctx.roundRect) ctx.roundRect(x, y, bW, bH, [3,3,0,0]);
       else ctx.rect(x, y, bW, bH);
       ctx.fill();
-    }
 
+      // Inner bar — unique visitors (solid, narrower)
+      if (hasUniq && p.uniq > 0) {
+        const uH = Math.max(2, (p.uniq / maxV) * cH);
+        const uy = pT + cH - uH;
+        const iX = x + bW * .18;
+        const iW = bW * .64;
+        const gInner = ctx.createLinearGradient(iX, uy, iX, uy + uH);
+        gInner.addColorStop(0, color);
+        gInner.addColorStop(1, color + '88');
+        ctx.fillStyle = gInner;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(iX, uy, iW, uH, [2,2,0,0]);
+        else ctx.rect(iX, uy, iW, uH);
+        ctx.fill();
+      }
+    }
     canvas._bars.push({ x, y: pT, w: bW, fullH: cH, p });
   });
   canvas._key = key;
 
   // X-axis labels
-  const step = Math.max(1, Math.ceil(points.length / 5));
+  const step = Math.max(1, Math.ceil(points.length / 6));
   ctx.fillStyle    = cssVar('--dim');
-  ctx.font         = `${9}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+  ctx.font         = `9px -apple-system, 'Segoe UI', sans-serif`;
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'bottom';
   points.forEach((p, i) => {
@@ -640,7 +478,7 @@ function drawBars(canvas, points, color, key) {
   });
 }
 
-// ─── Sparkline (compact bar chart for 52-week view) ───
+// ── Sparkline ─────────────────────────────────────────
 function drawSparkline(canvas, points, color) {
   if (!canvas || !points.length) return;
   const dpr  = window.devicePixelRatio || 1;
@@ -653,33 +491,27 @@ function drawSparkline(canvas, points, color) {
   const W = rect.width, H = rect.height;
   const pL = 1, pR = 1, pT = 3, pB = 3;
   const cW = W - pL - pR, cH = H - pT - pB;
-
-  // Grid
-  const gridAlpha = isDark() ? '0.05' : '0.06';
-  ctx.strokeStyle = `rgba(${isDark()?'255,255,255':'0,0,0'},${gridAlpha})`;
+  const ga = isDark() ? .05 : .07;
+  ctx.strokeStyle = isDark() ? `rgba(255,255,255,${ga})` : `rgba(0,0,0,${ga})`;
   ctx.lineWidth   = 0.5;
-  [0.5].forEach(t => {
+  [.5].forEach(t => {
     const gy = pT + cH * t;
     ctx.beginPath(); ctx.moveTo(pL, gy); ctx.lineTo(W - pR, gy); ctx.stroke();
   });
-
   const maxV = Math.max(...points.map(p => p.val), 1);
   const bW   = Math.max(1, cW / points.length - 1);
   canvas._bars = [];
-
   points.forEach((p, i) => {
     const bH = p.val > 0 ? Math.max(2, (p.val / maxV) * cH) : 1;
     const x  = pL + (i / points.length) * cW + (cW / points.length - bW) / 2;
     const y  = pT + cH - bH;
-    const isRecent = i >= points.length - 2;
-
-    if (isRecent) {
-      const grad = ctx.createLinearGradient(x, y, x, y + bH);
-      grad.addColorStop(0, color);
-      grad.addColorStop(1, color + '55');
-      ctx.fillStyle = grad;
+    const recent = i >= points.length - 2;
+    if (recent) {
+      const g = ctx.createLinearGradient(x, y, x, y + bH);
+      g.addColorStop(0, color); g.addColorStop(1, color + '55');
+      ctx.fillStyle = g;
     } else {
-      ctx.fillStyle = color + '33';
+      ctx.fillStyle = color + '30';
     }
     ctx.fillRect(x, y, bW, bH);
     canvas._bars.push({ x, y: pT, w: bW, fullH: cH, p });
@@ -687,7 +519,7 @@ function drawSparkline(canvas, points, color) {
   canvas._key = 'commits';
 }
 
-// ─── Tooltip ───
+// ── Tooltip ───────────────────────────────────────────
 const tooltip = document.getElementById('tooltip');
 document.addEventListener('mousemove', e => {
   const el = e.target.tagName === 'CANVAS' ? e.target : null;
@@ -697,11 +529,13 @@ document.addEventListener('mousemove', e => {
   for (const b of el._bars) {
     if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.fullH) {
       document.getElementById('ttLbl').textContent = b.p.label;
-      document.getElementById('ttVal').textContent = b.p.val + ' ' +
-        (el._key === 'clones' ? 'clones' : el._key === 'views' ? 'views' : 'commits');
+      const k    = el._key;
+      const unit = k === 'clones' ? 'clones' : k === 'views' ? 'views' : 'commits';
+      const uniq = b.p.uniq > 0 ? ` · ${b.p.uniq} unique` : '';
+      document.getElementById('ttVal').textContent = `${b.p.val} ${unit}${uniq}`;
       tooltip.style.opacity = 1;
       tooltip.style.left = (e.clientX + 13) + 'px';
-      tooltip.style.top  = (e.clientY - 38) + 'px';
+      tooltip.style.top  = (e.clientY - 40) + 'px';
       return;
     }
   }
@@ -709,30 +543,26 @@ document.addEventListener('mousemove', e => {
 });
 document.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  HELPERS
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function fmtK(n)    { if (n == null) return '—'; return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
 function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
 function dateStr(s) { return s.slice(5,10); }
 function weekStr(t) { return new Date(t*1000).toISOString().slice(2,7); }
 function sign(n)    { return n > 0 ? `+${n}` : '—'; }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  SIDEBAR
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function buildSidebar() {
   document.getElementById('sidebarNav').innerHTML = `
     <div class="nav-section">Overview</div>
     <div class="nav-item ${currentView==='all'?'active':''}" onclick="navigate('all')">
       <span class="nav-icon">◈</span>
-      <div class="nav-text">
-        <div class="nav-name">All Programs</div>
-        <div class="nav-cat">Aggregated</div>
-      </div>
+      <div class="nav-text"><div class="nav-name">All Programs</div><div class="nav-cat">Aggregated</div></div>
       <span class="nav-badge">${PROGRAMS.length}</span>
     </div>
-
     <div class="nav-section" style="margin-top:6px">Programs</div>
     ${PROGRAMS.map(p => `
       <div class="nav-item ${currentView===p.name?'active':''}" onclick="navigate('${p.name}')">
@@ -742,138 +572,124 @@ function buildSidebar() {
           <div class="nav-cat" id="ncat-${p.name}">${p.tag}</div>
         </div>
         <span class="nav-badge" id="nbadge-${p.name}">—</span>
-        ${p.url ? `<a href="${p.url}" target="_blank" class="nav-launch" onclick="event.stopPropagation()" title="Launch ${p.display}">▶</a>` : ''}
-      </div>
-    `).join('')}
-    <div class="nav-hint">Add programs in the PROGRAMS config ↑</div>
-  `;
+        ${p.url ? `<a href="${p.url}" target="_blank" class="nav-launch" onclick="event.stopPropagation()" title="Open ${p.display}">▶</a>` : ''}
+      </div>`).join('')}
+    <div class="nav-hint">Add programs in the PROGRAMS config ↑</div>`;
 }
 
 function updateBadges() {
   PROGRAMS.forEach(p => {
-    const d      = cache[p.name];
-    const badge  = document.getElementById(`nbadge-${p.name}`);
-    const catEl  = document.getElementById(`ncat-${p.name}`);
-    if (!d) return;
+    const d = cache[p.name]; if (!d) return;
+    const badge = document.getElementById(`nbadge-${p.name}`);
+    const cat   = document.getElementById(`ncat-${p.name}`);
     const v = d.views?.count ?? 0;
     const s = d.info?.stargazers_count ?? 0;
     const f = d.info?.forks_count      ?? 0;
     if (badge) badge.textContent = v > 0 ? `${v}v` : '—';
-    if (catEl) {
+    if (cat) {
       const parts = [p.tag];
       if (s > 0) parts.push(`${s}★`);
       if (f > 0) parts.push(`${f}⑂`);
-      catEl.textContent = parts.join(' · ');
+      cat.textContent = parts.join(' · ');
     }
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  NAVIGATION & TOGGLE HANDLERS
-// ═══════════════════════════════════════════════════════════════════
-function navigate(view) {
-  currentView = view;
-  iframeOpen  = null;
-  buildSidebar();
-  renderCurrentView();
-}
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION & TOGGLES
+// ═══════════════════════════════════════════════════════
+function navigate(view) { currentView = view; buildSidebar(); renderCurrentView(); }
 function renderCurrentView() {
   currentView === 'all'
     ? renderAllPrograms()
     : renderProgram(PROGRAMS.find(p => p.name === currentView));
 }
+function setEngMode(v) { engMode = v; renderCurrentView(); }
+function setCmtMode(v) { cmtMode = v; renderCurrentView(); }
 
-function setEngView(v)  { engView = v; renderCurrentView(); }
-function setCmtView(v)  { cmtView = v; renderCurrentView(); }
-
-function toggleIframe(name, url) {
-  if (iframeOpen === name) {
-    iframeOpen = null;
-  } else {
-    iframeOpen = name;
-  }
-  renderCurrentView();
-  // Scroll iframe into view after render
-  if (iframeOpen) {
-    setTimeout(() => {
-      const el = document.getElementById('run-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-  }
+// ═══════════════════════════════════════════════════════
+//  SHARED: build the 5 stat cards (used on both pages)
+// ═══════════════════════════════════════════════════════
+function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, forksNew, c14, c52, computing }) {
+  const engIsLife = engMode === 'lifetime';
+  const cmtIs14   = cmtMode === '14d';
+  return `
+  <div class="sum-grid">
+    <!-- Views -->
+    <div class="sum-card">
+      <div class="sum-val" style="color:var(--blue)">${fmtK(vTot)}</div>
+      <div class="sum-lbl"><span class="dot" style="background:var(--blue)"></span>Views <span style="color:var(--dim);font-weight:400">14d</span></div>
+      <div class="sum-sub">${fmtK(vUniq)} unique visitors</div>
+    </div>
+    <!-- Clones -->
+    <div class="sum-card">
+      <div class="sum-val" style="color:var(--green)">${fmtK(cTot)}</div>
+      <div class="sum-lbl"><span class="dot" style="background:var(--green)"></span>Clones <span style="color:var(--dim);font-weight:400">14d</span></div>
+      <div class="sum-sub">${fmtK(cUniq)} unique</div>
+    </div>
+    <!-- Stars -->
+    <div class="sum-card">
+      <div class="card-tgl">
+        <button class="ctgl ${engIsLife?'on':''}" onclick="setEngMode('lifetime')">All time</button>
+        <button class="ctgl ${!engIsLife?'on':''}" onclick="setEngMode('14d')">14d new</button>
+      </div>
+      <div class="sum-val" style="color:var(--orange)">${fmtK(engIsLife ? stars : starsNew)}</div>
+      <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Stars ⭐</div>
+      <div class="sum-sub">${engIsLife ? 'all time total' : `${sign(starsNew)} in 14d`}</div>
+    </div>
+    <!-- Forks -->
+    <div class="sum-card">
+      <div class="card-tgl">
+        <button class="ctgl ${engIsLife?'on':''}" onclick="setEngMode('lifetime')">All time</button>
+        <button class="ctgl ${!engIsLife?'on':''}" onclick="setEngMode('14d')">14d new</button>
+      </div>
+      <div class="sum-val" style="color:var(--purple)">${fmtK(engIsLife ? forks : forksNew)}</div>
+      <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Forks ⑂</div>
+      <div class="sum-sub">${engIsLife ? 'all time total' : `${sign(forksNew)} in 14d`}</div>
+    </div>
+    <!-- Commits -->
+    <div class="sum-card">
+      <div class="card-tgl">
+        <button class="ctgl ${cmtIs14?'on':''}"  onclick="setCmtMode('14d')">14 days</button>
+        <button class="ctgl ${!cmtIs14?'on':''}" onclick="setCmtMode('52w')">52 weeks</button>
+      </div>
+      <div class="sum-val" style="color:var(--muted)">${fmtK(cmtIs14 ? c14 : c52)}</div>
+      <div class="sum-lbl"><span class="dot" style="background:var(--muted)"></span>Commits 🔨</div>
+      <div class="sum-sub">${cmtIs14 ? 'last 14 days' : 'last 52 weeks'}${computing ? ' · <span style="color:var(--orange)">⏳</span>' : ''}</div>
+    </div>
+  </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  RENDER — INDIVIDUAL PROGRAM
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function renderProgram(prog) {
   if (!prog) return;
-  const n       = prog.name;
-  const d       = cache[n] || {};
-  const cutoff  = new Date(daysAgo(14));
+  const n      = prog.name;
+  const d      = cache[n] || {};
+  const cutoff = new Date(daysAgo(14));
 
-  // Traffic
-  const vPts   = (d.views?.views   || []).map(x => ({ label: dateStr(x.timestamp), val: x.count }));
-  const cPts   = (d.clones?.clones || []).map(x => ({ label: dateStr(x.timestamp), val: x.count }));
-  const vTot   = d.views?.count    ?? 0;
-  const vUniq  = d.views?.uniques  ?? 0;
-  const cTot   = d.clones?.count   ?? 0;
-  const cUniq  = d.clones?.uniques ?? 0;
+  const vPts   = (d.views?.views   || []).map(x => ({ label: dateStr(x.timestamp), val: x.count, uniq: x.uniques }));
+  const cPts   = (d.clones?.clones || []).map(x => ({ label: dateStr(x.timestamp), val: x.count, uniq: x.uniques }));
 
-  // Engagement
+  const vTot     = d.views?.count    ?? 0;
+  const vUniq    = d.views?.uniques  ?? 0;
+  const cTot     = d.clones?.count   ?? 0;
+  const cUniq    = d.clones?.uniques ?? 0;
+
   const info     = d.info || {};
   const stars    = info.stargazers_count ?? 0;
   const forks    = info.forks_count     ?? 0;
-  const watchers = info.watchers_count  ?? 0;
   const sgList   = d.stargazers || [];
   const fkList   = d.forks     || [];
-  const starsNew = sgList.filter(s => new Date(s.starred_at || 0) >= cutoff).length;
-  const forksNew = fkList.filter(f => new Date(f.created_at || 0) >= cutoff).length;
+  const starsNew = sgList.filter(s => new Date(s.starred_at||0) >= cutoff).length;
+  const forksNew = fkList.filter(f => new Date(f.created_at||0) >= cutoff).length;
 
-  // Commits
   const c14      = (d.commits14 || []).length;
   const weekly   = d.commitStats || [];
-  const c52      = weekly.reduce((s, w) => s + (w.total || 0), 0);
-  const sparkPts = weekly.map(w => ({ label: weekStr(w.week), val: w.total || 0 }));
-  const hasSpark = sparkPts.length > 0;
-  const computing = token && !hasSpark;
-
-  // Engagement cells — changes based on engView
-  function engCell(color, totalVal, newVal, label, isLifetime) {
-    const mainVal  = engView === 'lifetime' ? totalVal : newVal;
-    const auxVal   = engView === 'lifetime' ? (newVal > 0 ? `+${newVal} in 14d` : '—') : `of ${totalVal} total`;
-    const mainClr  = engView === 'lifetime' ? color : (newVal > 0 ? 'var(--green)' : 'var(--dim)');
-    return `
-      <div class="eng-cell">
-        <div class="eng-main" style="color:${mainClr}">${mainVal}</div>
-        <div class="eng-aux ${newVal>0&&engView!=='lifetime'?'pos':'zero'}">${auxVal}</div>
-        <div class="eng-lbl">${label}</div>
-        <div class="eng-sub">${engView==='lifetime'?'all time':'new in 14d'}</div>
-      </div>`;
-  }
-
-  // Commits boxes — highlight changes based on cmtView
-  const hi14  = cmtView === '14d'  ? ' hi' : '';
-  const hi52  = cmtView === '52w'  ? ' hi' : '';
-  const cMain = cmtView === '14d'  ? `color:var(--purple)` : '';
-  const c52st = cmtView === '52w'  ? `color:var(--purple)` : '';
-
-  // Run section
-  const isOpen = iframeOpen === n;
-  const runSection = prog.url ? `
-    <div class="run-section" id="run-section">
-      <div class="run-header">
-        <span class="run-title">${prog.icon} ${prog.display}</span>
-        <button class="run-cta" onclick="toggleIframe('${n}', '${prog.url}')">
-          ${isOpen ? '✕ Close' : '▶ Run in Dashboard'}
-        </button>
-        <a href="${prog.url}" target="_blank" class="pbtn" style="margin-left:6px;padding:6px 12px;font-size:.75rem;">⛶ Fullscreen</a>
-      </div>
-      ${isOpen
-        ? `<iframe class="run-iframe" src="${prog.url}" title="${prog.display}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`
-        : `<div class="run-placeholder">
-             <p style="color:var(--dim)">Click <strong style="color:var(--text)">▶ Run in Dashboard</strong> to launch the program here.</p>
-           </div>`}
-    </div>` : '';
+  const c52      = weekly.reduce((s,w) => s+(w.total||0), 0);
+  const sparkPts = weekly.map(w => ({ label: weekStr(w.week), val: w.total||0 }));
+  const computing = token && !sparkPts.length;
 
   document.getElementById('mainContent').innerHTML = `
     <div class="prog-header">
@@ -889,155 +705,121 @@ function renderProgram(prog) {
       </div>
     </div>
 
-    <!-- RUN EMBED -->
-    ${runSection}
+    ${buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, forksNew, c14, c52, computing })}
 
-    <!-- TRAFFIC -->
     <div class="section">
       <div class="sec-hdr">
         <span class="sec-title">📡 Traffic</span>
-        <span class="period">· last 14 days</span>
+        <span class="period" style="color:var(--dim)">· last 14 days</span>
+        ${vPts.some(p=>p.uniq>0) ? `<span style="font-size:.65rem;color:var(--dim);margin-left:4px">— wide bar = total &nbsp;|&nbsp; inner bar = unique</span>` : ''}
       </div>
       <div class="traffic-cols">
         <div>
-          <div class="col-lbl"><span style="color:var(--blue)">👁 Views</span></div>
-          <div class="stat-pair">
-            <div class="stat-mini">
-              <span class="stat-num">${vTot}</span>
-              <span class="stat-sub">total</span>
-            </div>
-            <div class="stat-mini">
-              <span class="stat-num" style="color:var(--blue)">${vUniq}</span>
-              <span class="stat-sub">unique</span>
-            </div>
-          </div>
-          <div class="chart-wrap"><canvas id="${n}-vc"></canvas></div>
+          <div style="font-size:.72rem;color:var(--blue);margin-bottom:7px">👁 Views</div>
+          <div class="chart-wrap" style="height:130px"><canvas id="${n}-vc"></canvas></div>
         </div>
         <div>
-          <div class="col-lbl"><span style="color:var(--green)">📥 Clones</span></div>
-          <div class="stat-pair">
-            <div class="stat-mini">
-              <span class="stat-num">${cTot}</span>
-              <span class="stat-sub">total</span>
-            </div>
-            <div class="stat-mini">
-              <span class="stat-num" style="color:var(--green)">${cUniq}</span>
-              <span class="stat-sub">unique</span>
-            </div>
-          </div>
-          <div class="chart-wrap"><canvas id="${n}-cc"></canvas></div>
+          <div style="font-size:.72rem;color:var(--green);margin-bottom:7px">📥 Clones</div>
+          <div class="chart-wrap" style="height:130px"><canvas id="${n}-cc"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- ENGAGEMENT -->
-    <div class="section">
-      <div class="sec-hdr">
-        <span class="sec-title">⭐ Engagement</span>
-        <span class="spacer"></span>
-        <div class="tgl-grp">
-          <button class="tgl-btn ${engView==='lifetime'?'on':''}" onclick="setEngView('lifetime')">All time</button>
-          <button class="tgl-btn ${engView==='14d'?'on':''}"      onclick="setEngView('14d')">New in 14d</button>
-        </div>
-      </div>
-      <div class="eng-row">
-        ${engCell('var(--orange)', stars,    starsNew, '⭐ Stars')}
-        ${engCell('var(--purple)', forks,    forksNew, '⑂ Forks')}
-        <div class="eng-cell">
-          <div class="eng-main" style="color:var(--muted)">${watchers}</div>
-          <div class="eng-aux zero">cumulative</div>
-          <div class="eng-lbl">👁 Watchers</div>
-          <div class="eng-sub">all time</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- COMMITS -->
     <div class="section">
       <div class="sec-hdr">
         <span class="sec-title">🔨 Commits</span>
-        <span class="spacer"></span>
-        <div class="tgl-grp">
-          <button class="tgl-btn ${cmtView==='14d'?'on':''}" onclick="setCmtView('14d')">14 days</button>
-          <button class="tgl-btn ${cmtView==='52w'?'on':''}" onclick="setCmtView('52w')">52 weeks</button>
-        </div>
+        <span class="period" style="color:var(--dim)">· 52-week weekly breakdown (last 2 weeks highlighted)</span>
       </div>
-      <div class="commits-row">
-        <div class="commit-box${hi14}">
-          <div class="commit-num" style="${cMain}">${c14}</div>
-          <div class="commit-lbl">Last 14d</div>
+      <div class="spark-box">
+        <div class="spark-hdr">
+          <div class="spark-lbl">Weekly commit activity</div>
+          <div class="spark-stat" id="${n}-spark-stat">${computing ? '⏳ computing…' : ''}</div>
         </div>
-        <div class="commit-box${hi52}">
-          <div class="commit-num" id="${n}-c52" style="${c52st}">${fmtK(c52)}</div>
-          <div class="commit-lbl">Last 52w</div>
-        </div>
-        <div class="spark-box">
-          <div class="spark-hdr">
-            <div class="spark-lbl">Weekly — 52 weeks <span style="opacity:.5">(last 2 highlighted)</span></div>
-            <div class="spark-stat" id="${n}-spark-stat">${computing ? '⏳ computing…' : ''}</div>
-          </div>
-          <div class="spark-wrap"><canvas id="${n}-spark"></canvas></div>
-        </div>
+        <div class="spark-wrap" style="height:60px"><canvas id="${n}-spark"></canvas></div>
       </div>
     </div>
 
     <div class="gc-banner">
       <div>
         <h3>📊 Analytics — GoatCounter</h3>
-        <p>Real visitor counts, countries, devices and referrers. Tracks from setup onwards — your true lifetime player metric.</p>
+        <p>Real visitor counts, countries, devices and referrers. Tracks from setup onwards — your true lifetime metric.</p>
       </div>
       <div class="gc-links">
         <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
         <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
       </div>
-    </div>
-  `;
+    </div>`;
 
   requestAnimationFrame(() => {
-    if (vPts.length)  drawBars(document.getElementById(`${n}-vc`), vPts, '#1f6feb', 'views');
-    if (cPts.length)  drawBars(document.getElementById(`${n}-cc`), cPts, '#238636', 'clones');
-    if (hasSpark)     drawSparkline(document.getElementById(`${n}-spark`), sparkPts, '#bc8cff');
+    if (vPts.length)    drawBars(document.getElementById(`${n}-vc`), vPts, '#1f6feb', 'views');
+    if (cPts.length)    drawBars(document.getElementById(`${n}-cc`), cPts, '#238636', 'clones');
+    if (sparkPts.length) drawSparkline(document.getElementById(`${n}-spark`), sparkPts, '#bc8cff');
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  RENDER — ALL PROGRAMS
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function renderAllPrograms() {
   const cutoff = new Date(daysAgo(14));
-  let totV=0, totC=0, totS=0, totF=0, totCm=0;
+
+  let totV=0, totVU=0, totC=0, totCU=0, totS=0, totSNew=0, totF=0, totFNew=0, totCm14=0, totCm52=0;
+  let anyComputing = false;
 
   const rows = PROGRAMS.map(prog => {
-    const d  = cache[prog.name] || {};
-    const v  = d.views?.count ?? 0;
-    const c  = d.clones?.count ?? 0;
-    const s  = d.info?.stargazers_count ?? 0;
-    const f  = d.info?.forks_count      ?? 0;
-    const cm = (d.commits14 || []).length;
-    totV += v; totC += c; totS += s; totF += f; totCm += cm;
-    return { prog, v, c, s, f, cm };
+    const d   = cache[prog.name] || {};
+    const v   = d.views?.count             ?? 0;
+    const vu  = d.views?.uniques           ?? 0;
+    const c   = d.clones?.count            ?? 0;
+    const cu  = d.clones?.uniques          ?? 0;
+    const s   = d.info?.stargazers_count   ?? 0;
+    const f   = d.info?.forks_count        ?? 0;
+    const sn  = (d.stargazers||[]).filter(x => new Date(x.starred_at||0) >= cutoff).length;
+    const fn  = (d.forks||[]).filter(x => new Date(x.created_at||0) >= cutoff).length;
+    const cm  = (d.commits14||[]).length;
+    const cm52= (d.commitStats||[]).reduce((a,w)=>a+(w.total||0),0);
+    if (token && !d.commitStats) anyComputing = true;
+    totV   += v; totVU  += vu; totC   += c; totCU  += cu;
+    totS   += s; totSNew+= sn; totF   += f; totFNew+= fn;
+    totCm14+= cm; totCm52+= cm52;
+    return { prog, v, vu, c, cu, s, sn, f, fn, cm };
   });
 
-  // Aggregate daily views
+  // Combined daily traffic (total + unique per day, summed across programs)
   const dayMap = {};
   PROGRAMS.forEach(prog => {
     (cache[prog.name]?.views?.views || []).forEach(x => {
       const k = dateStr(x.timestamp);
-      dayMap[k] = (dayMap[k] || 0) + x.count;
+      if (!dayMap[k]) dayMap[k] = { val:0, uniq:0 };
+      dayMap[k].val  += x.count;
+      dayMap[k].uniq += x.uniques;
     });
   });
-  const allVPts = Object.entries(dayMap).sort(([a],[b])=>a<b?-1:1).map(([label,val])=>({label,val}));
+  const allVPts = Object.entries(dayMap).sort(([a],[b])=>a<b?-1:1)
+                    .map(([label,d]) => ({ label, val:d.val, uniq:d.uniq }));
 
-  // Aggregate weekly commits
+  // Combined clones
+  const cloneMap = {};
+  PROGRAMS.forEach(prog => {
+    (cache[prog.name]?.clones?.clones || []).forEach(x => {
+      const k = dateStr(x.timestamp);
+      if (!cloneMap[k]) cloneMap[k] = { val:0, uniq:0 };
+      cloneMap[k].val  += x.count;
+      cloneMap[k].uniq += x.uniques;
+    });
+  });
+  const allCPts = Object.entries(cloneMap).sort(([a],[b])=>a<b?-1:1)
+                    .map(([label,d]) => ({ label, val:d.val, uniq:d.uniq }));
+
+  // Combined weekly commits
   const wkMap = {};
   PROGRAMS.forEach(prog => {
     (cache[prog.name]?.commitStats || []).forEach(w => {
       const k = weekStr(w.week);
-      wkMap[k] = (wkMap[k] || 0) + (w.total || 0);
+      wkMap[k] = (wkMap[k]||0) + (w.total||0);
     });
   });
   const allSPts = Object.entries(wkMap).sort(([a],[b])=>a<b?-1:1).map(([label,val])=>({label,val}));
-  const allC52  = allSPts.reduce((s,p) => s + p.val, 0);
 
   document.getElementById('mainContent').innerHTML = `
     <div class="all-hdr">
@@ -1045,29 +827,14 @@ function renderAllPrograms() {
       <div class="all-sub">Aggregated statistics across all ${PROGRAMS.length} programs</div>
     </div>
 
-    <div class="sum-grid">
-      <div class="sum-card">
-        <div class="sum-val" style="color:var(--blue)">${fmtK(totV)}</div>
-        <div class="sum-lbl"><span class="dot" style="background:var(--blue)"></span>Total Views (14d)</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-val" style="color:var(--green)">${fmtK(totC)}</div>
-        <div class="sum-lbl"><span class="dot" style="background:var(--green)"></span>Total Clones (14d)</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-val" style="color:var(--orange)">${fmtK(totS)}</div>
-        <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Stars ★ &nbsp;+&nbsp; <span style="color:var(--purple)">${fmtK(totF)}</span> Forks ⑂</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-val" style="color:var(--purple)">${fmtK(totCm)}</div>
-        <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Commits (14d)</div>
-      </div>
-    </div>
+    ${buildStatCards({ vTot:totV, vUniq:totVU, cTot:totC, cUniq:totCU,
+                       stars:totS, starsNew:totSNew, forks:totF, forksNew:totFNew,
+                       c14:totCm14, c52:totCm52, computing:anyComputing })}
 
     <div class="section">
       <div class="sec-hdr">
         <span class="sec-title">📋 Programs Breakdown</span>
-        <span class="period">· click a row to drill in</span>
+        <span class="period" style="color:var(--dim)">· click any row to drill in</span>
       </div>
       <table class="prog-table">
         <thead>
@@ -1076,36 +843,36 @@ function renderAllPrograms() {
             <th class="r">Views 14d</th>
             <th class="r">Unique</th>
             <th class="r">Clones 14d</th>
-            <th class="r">Stars ★</th>
+            <th class="r">Unique</th>
+            <th class="r">Stars ⭐</th>
             <th class="r">Forks ⑂</th>
             <th class="r">Commits 14d</th>
           </tr>
         </thead>
         <tbody>
-          ${rows.map(({prog,v,c,s,f,cm}) => {
-            const d    = cache[prog.name] || {};
-            const vUniq = d.views?.uniques ?? 0;
-            return `
-              <tr onclick="navigate('${prog.name}')">
-                <td><div class="prog-name-cell">${prog.icon} ${prog.display} <span class="tag-sm">${prog.tag}</span></div></td>
-                <td class="nc blue">${fmtK(v)}</td>
-                <td class="nc" style="color:var(--muted)">${fmtK(vUniq)}</td>
-                <td class="nc green">${fmtK(c)}</td>
-                <td class="nc orange">${fmtK(s)}</td>
-                <td class="nc purple">${fmtK(f)}</td>
-                <td class="nc" style="color:var(--purple)">${fmtK(cm)}</td>
-              </tr>`;
-          }).join('')}
+          ${rows.map(({prog,v,vu,c,cu,s,f,cm}) => `
+            <tr onclick="navigate('${prog.name}')">
+              <td><div class="prog-name-cell">${prog.icon} ${prog.display}
+                <span class="tag-sm">${prog.tag}</span></div></td>
+              <td class="nc blue">${fmtK(v)}</td>
+              <td class="nc muted">${fmtK(vu)}</td>
+              <td class="nc green">${fmtK(c)}</td>
+              <td class="nc muted">${fmtK(cu)}</td>
+              <td class="nc orange">${fmtK(s)}</td>
+              <td class="nc purple">${fmtK(f)}</td>
+              <td class="nc" style="color:var(--muted)">${fmtK(cm)}</td>
+            </tr>`).join('')}
         </tbody>
         <tfoot>
           <tr>
             <td>Totals</td>
             <td class="nc blue">${fmtK(totV)}</td>
-            <td class="nc" style="color:var(--muted)">—</td>
+            <td class="nc muted">${fmtK(totVU)}</td>
             <td class="nc green">${fmtK(totC)}</td>
+            <td class="nc muted">${fmtK(totCU)}</td>
             <td class="nc orange">${fmtK(totS)}</td>
             <td class="nc purple">${fmtK(totF)}</td>
-            <td class="nc" style="color:var(--purple)">${fmtK(totCm)}</td>
+            <td class="nc" style="color:var(--muted)">${fmtK(totCm14)}</td>
           </tr>
         </tfoot>
       </table>
@@ -1115,31 +882,32 @@ function renderAllPrograms() {
     <div class="section">
       <div class="sec-hdr">
         <span class="sec-title">📡 Combined Views</span>
-        <span class="period">· last 14 days, all programs</span>
+        <span class="period" style="color:var(--dim)">· last 14 days, all programs</span>
+        <span style="font-size:.65rem;color:var(--dim);margin-left:4px">— wide bar = total &nbsp;|&nbsp; inner bar = unique</span>
       </div>
-      <div class="chart-wrap" style="height:110px"><canvas id="all-vc"></canvas></div>
+      <div class="chart-wrap" style="height:180px"><canvas id="all-vc"></canvas></div>
+    </div>` : ''}
+
+    ${allCPts.length ? `
+    <div class="section">
+      <div class="sec-hdr">
+        <span class="sec-title">📥 Combined Clones</span>
+        <span class="period" style="color:var(--dim)">· last 14 days, all programs</span>
+        <span style="font-size:.65rem;color:var(--dim);margin-left:4px">— wide bar = total &nbsp;|&nbsp; inner bar = unique</span>
+      </div>
+      <div class="chart-wrap" style="height:140px"><canvas id="all-cc"></canvas></div>
     </div>` : ''}
 
     <div class="section">
       <div class="sec-hdr">
         <span class="sec-title">🔨 Combined Commits</span>
-        <span class="period">· 52 weeks, all programs</span>
+        <span class="period" style="color:var(--dim)">· 52 weeks, all programs</span>
       </div>
-      <div class="commits-row">
-        <div class="commit-box">
-          <div class="commit-num">${fmtK(totCm)}</div>
-          <div class="commit-lbl">Last 14d</div>
+      <div class="spark-box">
+        <div class="spark-hdr">
+          <div class="spark-lbl">Combined weekly commit activity — all programs (last 2 weeks highlighted)</div>
         </div>
-        <div class="commit-box">
-          <div class="commit-num">${fmtK(allC52)}</div>
-          <div class="commit-lbl">Last 52w</div>
-        </div>
-        <div class="spark-box">
-          <div class="spark-hdr">
-            <div class="spark-lbl">Combined weekly commits — all programs</div>
-          </div>
-          <div class="spark-wrap"><canvas id="all-spark"></canvas></div>
-        </div>
+        <div class="spark-wrap" style="height:60px"><canvas id="all-spark"></canvas></div>
       </div>
     </div>
 
@@ -1152,28 +920,27 @@ function renderAllPrograms() {
         <a href="https://hulkiokantabak.goatcounter.com" target="_blank" class="gc-link">📈 Dashboard</a>
         <a href="https://hulkiokantabak.goatcounter.com/settings/main" target="_blank" class="gc-link">⚙️ Settings</a>
       </div>
-    </div>
-  `;
+    </div>`;
 
   requestAnimationFrame(() => {
-    if (allVPts.length) drawBars(document.getElementById('all-vc'),   allVPts, '#1f6feb', 'views');
-    if (allSPts.length) drawSparkline(document.getElementById('all-spark'), allSPts, '#bc8cff');
+    if (allVPts.length)  drawBars(document.getElementById('all-vc'),    allVPts, '#1f6feb', 'views');
+    if (allCPts.length)  drawBars(document.getElementById('all-cc'),    allCPts, '#238636', 'clones');
+    if (allSPts.length)  drawSparkline(document.getElementById('all-spark'), allSPts, '#bc8cff');
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  DATA LOADING
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 async function fetchProgram(prog) {
-  const n       = prog.name;
-  const since14 = daysAgo(14);
+  const n = prog.name, since14 = daysAgo(14);
   const [info, views, clones, stars, forks, commits14, commitStats] =
     await Promise.allSettled([
       gh(`/repos/${OWNER}/${n}`),
       token ? gh(`/repos/${OWNER}/${n}/traffic/views`)  : Promise.resolve(null),
       token ? gh(`/repos/${OWNER}/${n}/traffic/clones`) : Promise.resolve(null),
       token ? gh(`/repos/${OWNER}/${n}/stargazers?per_page=100&sort=newest`,
-                  'application/vnd.github.star+json')  : Promise.resolve([]),
+                  'application/vnd.github.star+json')   : Promise.resolve([]),
       token ? gh(`/repos/${OWNER}/${n}/forks?sort=newest&per_page=100`) : Promise.resolve([]),
       token ? gh(`/repos/${OWNER}/${n}/commits?since=${since14}&author=${OWNER}&per_page=100`)
             : Promise.resolve([]),
@@ -1183,9 +950,9 @@ async function fetchProgram(prog) {
     info:        info.status        === 'fulfilled' ? info.value        : {},
     views:       views.status       === 'fulfilled' ? views.value       : null,
     clones:      clones.status      === 'fulfilled' ? clones.value      : null,
-    stargazers:  stars.status       === 'fulfilled' ? (stars.value      || []) : [],
-    forks:       forks.status       === 'fulfilled' ? (forks.value      || []) : [],
-    commits14:   commits14.status   === 'fulfilled' ? (commits14.value  || []) : [],
+    stargazers:  stars.status       === 'fulfilled' ? (stars.value||[]) : [],
+    forks:       forks.status       === 'fulfilled' ? (forks.value||[]) : [],
+    commits14:   commits14.status   === 'fulfilled' ? (commits14.value||[]) : [],
     commitStats: commitStats.status === 'fulfilled' ? commitStats.value : null,
   };
 }
@@ -1198,18 +965,15 @@ async function loadAll() {
   document.getElementById('lastUpd').textContent = new Date().toLocaleTimeString();
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  RESIZE
-// ═══════════════════════════════════════════════════════════════════
-let rsTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(rsTimer);
-  rsTimer = setTimeout(renderCurrentView, 200);
-});
+// ═══════════════════════════════════════════════════════
+let rsT;
+window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(renderCurrentView, 200); });
 
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 applyTheme();
 loadToken();
 buildSidebar();
@@ -1220,6 +984,5 @@ setInterval(loadAll, 5 * 60 * 1000);
 <!-- GoatCounter — tracks this dashboard as its own product -->
 <script data-goatcounter="https://hulkiokantabak.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
-
 </body>
 </html>
