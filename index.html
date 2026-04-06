@@ -1100,7 +1100,12 @@ async function loadAll() {
 const GC_BASE = 'https://hulkiokantabak.goatcounter.com/api/v0';
 
 function gcIsoRange(range) {
+  // end = tomorrow in UTC so today's data is always inside the window.
+  // GoatCounter treats the end date as exclusive (start-of-day), so passing
+  // today would cut off visits that happened today. +1 day fixes this and
+  // also handles users whose local date is ahead of UTC.
   const end = new Date();
+  end.setDate(end.getDate() + 1);
   const start = new Date(end);
   start.setDate(start.getDate() - (range === '7d' ? 7 : range === '30d' ? 30 : 90));
   const fmt = d => d.toISOString().slice(0, 10); // YYYY-MM-DD
