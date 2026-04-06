@@ -263,6 +263,20 @@
       .mob-bar     { display: none !important; }
       .mob-overlay { display: none !important; }
     }
+
+    /* ── GOATCOUNTER ANALYTICS ── */
+    .gc-token-row   { display:flex; gap:8px; align-items:center; margin-bottom:20px; }
+    .gc-token-input { flex:1; background:var(--surf); border:1px solid var(--border);
+                      border-radius:7px; padding:7px 11px; font-size:.8rem;
+                      color:var(--text); outline:none; min-width:0; }
+    .gc-token-input:focus { border-color:var(--blue); }
+    .gc-empty   { text-align:center; padding:40px 20px; color:var(--dim); }
+    .gc-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:.75rem; }
+    .gc-bar-label { min-width:90px; max-width:150px; color:var(--text);
+                    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+    .gc-bar-track { flex:1; height:6px; background:var(--surf2); border-radius:3px; overflow:hidden; }
+    .gc-bar-fill  { height:100%; border-radius:3px; opacity:.8; }
+    .gc-bar-count { min-width:36px; text-align:right; color:var(--muted); font-size:.7rem; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -360,6 +374,9 @@ let forksMode   = '14d';      // forks: '14d' | 'lifetime'
 let cmtMode     = '14d';      // commits:       '14d'      | '52w'
 const cache     = {};
 const retrying  = new Set();
+let gcToken     = localStorage.getItem('pd_gc_token') || '';
+let gcTimeRange = '30d'; // '7d' | '30d' | '90d'
+const gcCache   = {};
 
 // ═══════════════════════════════════════════════════════
 //  THEME
@@ -624,6 +641,7 @@ document.addEventListener('click', e => {
   if      (fn === 'setStarsMode') setStarsMode(val);
   else if (fn === 'setForksMode') setForksMode(val);
   else if (fn === 'setCmtMode')   setCmtMode(val);
+  else if (fn === 'setGcRange')   setGcRange(val);
 });
 
 // ═══════════════════════════════════════════════════════
@@ -657,6 +675,11 @@ function buildSidebar() {
         <span class="nav-badge" id="nbadge-${p.name}">—</span>
         ${p.url ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer" class="nav-launch" onclick="event.stopPropagation()" title="Open ${p.display}">▶</a>` : ''}
       </div>`).join('')}
+    <div class="nav-section" style="margin-top:6px">Analytics</div>
+    <div class="nav-item ${currentView==='analytics'?'active':''}" onclick="navigate('analytics')">
+      <span class="nav-icon">📊</span>
+      <div class="nav-text"><div class="nav-name">GoatCounter</div><div class="nav-cat">Web analytics</div></div>
+    </div>
 `;
 }
 
@@ -683,9 +706,9 @@ function updateBadges() {
 // ═══════════════════════════════════════════════════════
 function navigate(view) { currentView = view; buildSidebar(); renderCurrentView(); sidebarClose(); }
 function renderCurrentView() {
-  currentView === 'all'
-    ? renderAllPrograms()
-    : renderProgram(PROGRAMS.find(p => p.name === currentView));
+  if      (currentView === 'all')       renderAllPrograms();
+  else if (currentView === 'analytics') renderAnalytics();
+  else                                  renderProgram(PROGRAMS.find(p => p.name === currentView));
 }
 function setStarsMode(v) { starsMode = v; renderCurrentView(); }
 function setForksMode(v) { forksMode = v; renderCurrentView(); }
@@ -1045,6 +1068,200 @@ async function loadAll() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  GOATCOUNTER ANALYTICS
+// ═══════════════════════════════════════════════════════
+const GC_BASE = 'https://hulkiokantabak.goatcounter.com/api/v0';
+
+function gcIsoRange(range) {
+  const end = new Date(); end.setMinutes(0, 0, 0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (range === '7d' ? 7 : range === '30d' ? 30 : 90));
+  const fmt = d => d.toISOString().replace('T', ' ').slice(0, 16) + ':00';
+  return { start: fmt(start), end: fmt(end) };
+}
+
+async function gcFetch(path) {
+  const r = await fetch(`${GC_BASE}${path}`, {
+    headers: { 'Authorization': `Bearer ${gcToken}` }
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function saveGcToken() {
+  gcToken = (document.getElementById('gcTokenInput')?.value || '').trim();
+  localStorage.setItem('pd_gc_token', gcToken);
+  Object.keys(gcCache).forEach(k => delete gcCache[k]);
+  loadGcData();
+}
+
+function setGcRange(r) { gcTimeRange = r; Object.keys(gcCache).forEach(k => delete gcCache[k]); loadGcData(); }
+
+async function loadGcData() {
+  if (!gcToken) { renderAnalytics(); return; }
+  gcCache.loading = true; gcCache.error = null;
+  renderAnalytics();
+  const { start, end } = gcIsoRange(gcTimeRange);
+  const qs = `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+  const [totRes, hitsRes, refsRes, brwsRes, locRes] = await Promise.allSettled([
+    gcFetch(`/stats/total${qs}`),
+    gcFetch(`/stats/hits${qs}&limit=10`),
+    gcFetch(`/stats/toprefs${qs}&limit=10`),
+    gcFetch(`/stats/browsers${qs}&limit=10`),
+    gcFetch(`/stats/locations${qs}&limit=10`)
+  ]);
+  gcCache.loading  = false;
+  gcCache.total    = totRes.status  === 'fulfilled' ? totRes.value  : null;
+  gcCache.hits     = hitsRes.status === 'fulfilled' ? hitsRes.value : null;
+  gcCache.refs     = refsRes.status === 'fulfilled' ? refsRes.value : null;
+  gcCache.browsers = brwsRes.status === 'fulfilled' ? brwsRes.value : null;
+  gcCache.locs     = locRes.status  === 'fulfilled' ? locRes.value  : null;
+  if (totRes.status !== 'fulfilled') gcCache.error = totRes.reason?.message || 'API error';
+  renderAnalytics();
+}
+
+function renderAnalytics() {
+  if (currentView !== 'analytics') return;
+  const el       = document.getElementById('mainContent');
+  const hasToken = !!gcToken;
+  const loading  = !!gcCache.loading;
+  const err      = gcCache.error || null;
+  const total    = gcCache.total   || null;
+  const hits     = gcCache.hits?.hits    || [];
+  const refs     = gcCache.refs?.stats   || [];
+  const brows    = gcCache.browsers?.stats || [];
+  const locs     = gcCache.locs?.stats   || [];
+
+  const dailyPts = (total?.stats || []).map(s => ({
+    label: (s.day || '').slice(5, 10),
+    val:   s.daily || 0,
+    uniq:  0
+  }));
+
+  const maxHits = Math.max(...hits.map(h => h.count), 1);
+  const maxRefs = Math.max(...refs.map(r => r.count), 1);
+  const maxBrow = Math.max(...brows.map(b => b.count), 1);
+  const maxLocs = Math.max(...locs.map(l => l.count), 1);
+
+  const barRow = (label, count, max, color) => {
+    const pct = Math.round((count / max) * 100);
+    return `<div class="gc-bar-row">
+      <span class="gc-bar-label" title="${label}">${label}</span>
+      <div class="gc-bar-track"><div class="gc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="gc-bar-count">${fmtK(count)}</span>
+    </div>`;
+  };
+
+  const noData = '<div style="color:var(--dim);font-size:.75rem;padding:4px 0">No data for this period</div>';
+
+  el.innerHTML = `
+    <div class="all-hdr">
+      <div class="all-title">📊 GoatCounter Analytics</div>
+      <div class="all-sub">Web traffic from
+        <a href="https://hulkiokantabak.goatcounter.com" target="_blank" rel="noopener noreferrer"
+           style="color:var(--blue);text-decoration:none">hulkiokantabak.goatcounter.com ↗</a>
+      </div>
+    </div>
+
+    <div class="gc-token-row">
+      <input id="gcTokenInput" type="password" class="gc-token-input"
+             placeholder="GoatCounter API token…" autocomplete="new-password"
+             value="${gcToken}" />
+      <button class="btn btn-green" onclick="saveGcToken()" style="flex-shrink:0">Load</button>
+      <a href="https://hulkiokantabak.goatcounter.com/user/api" target="_blank" rel="noopener noreferrer">
+        <button class="btn btn-ghost" style="flex-shrink:0;font-size:.67rem">Get token ↗</button>
+      </a>
+    </div>
+
+    ${!hasToken ? `
+      <div class="gc-empty">
+        <div style="font-size:2rem;margin-bottom:10px">📊</div>
+        <div style="font-size:.9rem;color:var(--muted);margin-bottom:6px">Add your GoatCounter API token above to load analytics data.</div>
+        <div style="font-size:.75rem;color:var(--dim)">Create one at
+          <a href="https://hulkiokantabak.goatcounter.com/user/api" target="_blank" rel="noopener noreferrer"
+             style="color:var(--blue)">GoatCounter → Account → API tokens</a>
+        </div>
+      </div>
+    ` : loading ? `
+      <div class="gc-empty"><div style="color:var(--muted);font-size:.9rem">⏳ Loading GoatCounter data…</div></div>
+    ` : err ? `
+      <div class="gc-empty">
+        <div style="color:var(--red);font-size:.85rem;margin-bottom:10px">⚠ GoatCounter API error: ${err}</div>
+        <div style="font-size:.75rem;color:var(--dim);margin-bottom:8px">Check your API token is correct and has read permissions.</div>
+        <div style="font-size:.73rem;color:var(--dim)">If the error persists, view data directly at
+          <a href="https://hulkiokantabak.goatcounter.com" target="_blank" rel="noopener noreferrer"
+             style="color:var(--blue)">hulkiokantabak.goatcounter.com ↗</a>
+        </div>
+      </div>
+    ` : `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap">
+        <span style="font-size:.66rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em">Period</span>
+        <div class="card-tgl">
+          <button class="ctgl ${gcTimeRange==='7d'?'on':''}"  data-fn="setGcRange" data-val="7d">7 days</button>
+          <button class="ctgl ${gcTimeRange==='30d'?'on':''}" data-fn="setGcRange" data-val="30d">30 days</button>
+          <button class="ctgl ${gcTimeRange==='90d'?'on':''}" data-fn="setGcRange" data-val="90d">90 days</button>
+        </div>
+      </div>
+
+      <div class="sum-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:22px">
+        <div class="sum-card">
+          <div class="sum-val" style="color:var(--blue)">${fmtK(total?.total ?? 0)}</div>
+          <div class="sum-lbl"><span class="dot" style="background:var(--blue)"></span>Pageviews</div>
+          <div class="sum-sub">${gcTimeRange} total</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val" style="color:var(--green)">${hits.length > 0 ? hits.length + (gcCache.hits?.more ? '+' : '') : '—'}</div>
+          <div class="sum-lbl"><span class="dot" style="background:var(--green)"></span>Pages tracked</div>
+          <div class="sum-sub">unique paths</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val" style="color:var(--purple)">${fmtK(total?.total_events ?? 0)}</div>
+          <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Events</div>
+          <div class="sum-sub">${gcTimeRange} total</div>
+        </div>
+      </div>
+
+      ${dailyPts.length > 0 ? `
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">📈 Daily Pageviews</span>
+          <span class="period" style="color:var(--dim)">· last ${gcTimeRange}</span>
+        </div>
+        <div class="chart-wrap" style="height:150px"><canvas id="gc-daily"></canvas></div>
+      </div>` : ''}
+
+      <div class="traffic-cols">
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">🔗 Top Pages</span></div>
+          ${hits.length ? hits.slice(0,8).map(h => barRow(h.path || '/', h.count, maxHits, 'var(--blue)')).join('') : noData}
+        </div>
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
+          ${refs.length ? refs.slice(0,8).map(r => barRow(r.name || 'direct', r.count, maxRefs, 'var(--green)')).join('') : noData}
+        </div>
+      </div>
+
+      <div class="traffic-cols">
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">🌐 Browsers</span></div>
+          ${brows.length ? brows.slice(0,8).map(b => barRow(b.name || b.id || 'Unknown', b.count, maxBrow, 'var(--orange)')).join('') : noData}
+        </div>
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">🗺 Countries</span></div>
+          ${locs.length ? locs.slice(0,8).map(l => barRow(l.name || l.id || 'Unknown', l.count, maxLocs, 'var(--purple)')).join('') : noData}
+        </div>
+      </div>
+    `}
+  `;
+
+  if (hasToken && !loading && !err && dailyPts.length > 0) {
+    requestAnimationFrame(() => {
+      drawBars(document.getElementById('gc-daily'), dailyPts, cssVar('--blue'), 'views');
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 //  RESIZE
 // ═══════════════════════════════════════════════════════
 let rsT;
@@ -1058,6 +1275,7 @@ loadToken();
 buildSidebar();
 loadAll();
 startAutoRefresh();
+if (gcToken) loadGcData(); // pre-fetch GC data in background if token already saved
 </script>
 
 <!-- GoatCounter — tracks this dashboard as its own product -->
