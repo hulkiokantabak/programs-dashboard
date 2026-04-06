@@ -301,7 +301,8 @@ const PROGRAMS = [
 // ═══════════════════════════════════════════════════════
 let token       = '';
 let currentView = 'all';     // 'all' | program.name
-let engMode     = 'lifetime'; // stars + forks: 'lifetime' | '14d'
+let starsMode   = 'lifetime'; // stars: 'lifetime' | '14d'
+let forksMode   = 'lifetime'; // forks: 'lifetime' | '14d'
 let cmtMode     = '14d';      // commits:       '14d'      | '52w'
 const cache     = {};
 const retrying  = new Set();
@@ -604,15 +605,17 @@ function renderCurrentView() {
     ? renderAllPrograms()
     : renderProgram(PROGRAMS.find(p => p.name === currentView));
 }
-function setEngMode(v) { engMode = v; renderCurrentView(); }
-function setCmtMode(v) { cmtMode = v; renderCurrentView(); }
+function setStarsMode(v) { starsMode = v; renderCurrentView(); }
+function setForksMode(v) { forksMode = v; renderCurrentView(); }
+function setCmtMode(v)   { cmtMode   = v; renderCurrentView(); }
 
 // ═══════════════════════════════════════════════════════
 //  SHARED: build the 5 stat cards (used on both pages)
 // ═══════════════════════════════════════════════════════
 function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, forksNew, c14, c52, computing }) {
-  const engIsLife = engMode === 'lifetime';
-  const cmtIs14   = cmtMode === '14d';
+  const sLife   = starsMode === 'lifetime';
+  const fLife   = forksMode === 'lifetime';
+  const cmtIs14 = cmtMode   === '14d';
   return `
   <div class="sum-grid">
     <!-- Views -->
@@ -627,25 +630,25 @@ function buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, fork
       <div class="sum-lbl"><span class="dot" style="background:var(--green)"></span>Clones <span style="color:var(--dim);font-weight:400">14d</span></div>
       <div class="sum-sub">${fmtK(cUniq)} unique</div>
     </div>
-    <!-- Stars -->
+    <!-- Stars — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${engIsLife?'on':''}" onclick="setEngMode('lifetime')">All time</button>
-        <button class="ctgl ${!engIsLife?'on':''}" onclick="setEngMode('14d')">14d new</button>
+        <button class="ctgl ${sLife?'on':''}"  onclick="setStarsMode('lifetime')">All time</button>
+        <button class="ctgl ${!sLife?'on':''}" onclick="setStarsMode('14d')">14d new</button>
       </div>
-      <div class="sum-val" style="color:var(--orange)">${fmtK(engIsLife ? stars : starsNew)}</div>
+      <div class="sum-val" style="color:var(--orange)">${fmtK(sLife ? stars : starsNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--orange)"></span>Stars ⭐</div>
-      <div class="sum-sub">${engIsLife ? 'all time total' : `${sign(starsNew)} in 14d`}</div>
+      <div class="sum-sub">${sLife ? 'all time total' : `${sign(starsNew)} in 14d`}</div>
     </div>
-    <!-- Forks -->
+    <!-- Forks — independent toggle -->
     <div class="sum-card">
       <div class="card-tgl">
-        <button class="ctgl ${engIsLife?'on':''}" onclick="setEngMode('lifetime')">All time</button>
-        <button class="ctgl ${!engIsLife?'on':''}" onclick="setEngMode('14d')">14d new</button>
+        <button class="ctgl ${fLife?'on':''}"  onclick="setForksMode('lifetime')">All time</button>
+        <button class="ctgl ${!fLife?'on':''}" onclick="setForksMode('14d')">14d new</button>
       </div>
-      <div class="sum-val" style="color:var(--purple)">${fmtK(engIsLife ? forks : forksNew)}</div>
+      <div class="sum-val" style="color:var(--purple)">${fmtK(fLife ? forks : forksNew)}</div>
       <div class="sum-lbl"><span class="dot" style="background:var(--purple)"></span>Forks ⑂</div>
-      <div class="sum-sub">${engIsLife ? 'all time total' : `${sign(forksNew)} in 14d`}</div>
+      <div class="sum-sub">${fLife ? 'all time total' : `${sign(forksNew)} in 14d`}</div>
     </div>
     <!-- Commits -->
     <div class="sum-card">
