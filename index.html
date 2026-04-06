@@ -864,7 +864,7 @@ function renderAllPrograms() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map(({prog,v,vu,c,cu,s,f,cm}) => `
+          ${rows.map(({prog,v,vu,c,cu,s,sn,f,fn,cm}) => `
             <tr onclick="navigate('${prog.name}')">
               <td><div class="prog-name-cell">${prog.icon} ${prog.display}
                 <span class="tag-sm">${prog.tag}</span></div></td>
