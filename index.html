@@ -271,12 +271,15 @@
                       color:var(--text); outline:none; min-width:0; }
     .gc-token-input:focus { border-color:var(--blue); }
     .gc-empty   { text-align:center; padding:40px 20px; color:var(--dim); }
-    .gc-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:.75rem; }
-    .gc-bar-label { min-width:90px; max-width:150px; color:var(--text);
+    .gc-bar-row { display:flex; align-items:center; gap:7px; margin-bottom:7px; font-size:.75rem; }
+    .gc-bar-pct   { min-width:30px; text-align:right; color:var(--dim); font-size:.7rem; flex-shrink:0; }
+    .gc-bar-label { min-width:80px; max-width:140px; color:var(--text);
                     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+    .gc-bar-label-wide { min-width:120px; max-width:220px; color:var(--text);
+                         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
     .gc-bar-track { flex:1; height:6px; background:var(--surf2); border-radius:3px; overflow:hidden; }
     .gc-bar-fill  { height:100%; border-radius:3px; opacity:.8; }
-    .gc-bar-count { min-width:36px; text-align:right; color:var(--muted); font-size:.7rem; flex-shrink:0; }
+    .gc-bar-count { min-width:32px; text-align:right; color:var(--muted); font-size:.7rem; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -1111,7 +1114,10 @@ async function loadGcData() {
     [`/stats/hits${qs}&limit=10`,        'hits'],
     [`/stats/toprefs${qs}&limit=10`,     'refs'],
     [`/stats/browsers${qs}&limit=10`,    'browsers'],
+    [`/stats/systems${qs}&limit=10`,     'systems'],
     [`/stats/locations${qs}&limit=10`,   'locs'],
+    [`/stats/sizes${qs}&limit=10`,       'sizes'],
+    [`/stats/languages${qs}&limit=10`,   'langs'],
   ];
   let firstErr = null;
   for (let i = 0; i < endpoints.length; i++) {
@@ -1133,10 +1139,10 @@ function renderAnalytics() {
   const loading  = !!gcCache.loading;
   const err      = gcCache.error || null;
   const total    = gcCache.total   || null;
-  const hits     = gcCache.hits?.hits    || [];
-  const refs     = gcCache.refs?.stats   || [];
-  const brows    = gcCache.browsers?.stats || [];
-  const locs     = gcCache.locs?.stats   || [];
+  const hits     = gcCache.hits?.hits       || [];
+  const refs     = gcCache.refs?.stats      || [];
+  const brows    = gcCache.browsers?.stats  || [];
+  const locs     = gcCache.locs?.stats      || [];
 
   const dailyPts = (total?.stats || []).map(s => ({
     label: (s.day || '').slice(5, 10),
@@ -1144,16 +1150,30 @@ function renderAnalytics() {
     uniq:  0
   }));
 
-  const maxHits = Math.max(...hits.map(h => h.count), 1);
-  const maxRefs = Math.max(...refs.map(r => r.count), 1);
-  const maxBrow = Math.max(...brows.map(b => b.count), 1);
-  const maxLocs = Math.max(...locs.map(l => l.count), 1);
+  const systems  = gcCache.systems?.stats   || [];
+  const sizes    = gcCache.sizes?.stats     || [];
+  const langs    = gcCache.langs?.stats     || [];
 
-  const barRow = (label, count, max, color) => {
-    const pct = Math.round((count / max) * 100);
+  // max for bar width, sum for % label
+  const maxOf = arr => Math.max(...arr.map(x => x.count), 1);
+  const sumOf = arr => arr.reduce((a, x) => a + x.count, 0) || 1;
+
+  const maxHits = maxOf(hits);   const sumHits = sumOf(hits);
+  const maxRefs = maxOf(refs);   const sumRefs = sumOf(refs);
+  const maxBrow = maxOf(brows);  const sumBrow = sumOf(brows);
+  const maxSys  = maxOf(systems);const sumSys  = sumOf(systems);
+  const maxLocs = maxOf(locs);   const sumLocs = sumOf(locs);
+  const maxSz   = maxOf(sizes);  const sumSz   = sumOf(sizes);
+  const maxLang = maxOf(langs);  const sumLang = sumOf(langs);
+
+  const barRow = (label, count, max, sum, color, wide = false) => {
+    const barPct = Math.round((count / max) * 100);
+    const txtPct = Math.round((count / sum) * 100);
+    const cls    = wide ? 'gc-bar-label-wide' : 'gc-bar-label';
     return `<div class="gc-bar-row">
-      <span class="gc-bar-label" title="${label}">${label}</span>
-      <div class="gc-bar-track"><div class="gc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <span class="gc-bar-pct">${txtPct}%</span>
+      <span class="${cls}" title="${label}">${label}</span>
+      <div class="gc-bar-track"><div class="gc-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
       <span class="gc-bar-count">${fmtK(count)}</span>
     </div>`;
   };
@@ -1239,23 +1259,39 @@ function renderAnalytics() {
       <div class="traffic-cols">
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🔗 Top Pages</span></div>
-          ${hits.length ? hits.slice(0,8).map(h => barRow(h.path || '/', h.count, maxHits, 'var(--blue)')).join('') : noData}
+          ${hits.length ? hits.slice(0,8).map(h => barRow(h.path||'/', h.count, maxHits, sumHits, 'var(--blue)')).join('') : noData}
         </div>
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
-          ${refs.length ? refs.slice(0,8).map(r => barRow(r.name || 'direct', r.count, maxRefs, 'var(--green)')).join('') : noData}
+          ${refs.length ? refs.slice(0,8).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData}
         </div>
       </div>
 
       <div class="traffic-cols">
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🌐 Browsers</span></div>
-          ${brows.length ? brows.slice(0,8).map(b => barRow(b.name || b.id || 'Unknown', b.count, maxBrow, 'var(--orange)')).join('') : noData}
+          ${brows.length ? brows.slice(0,8).map(b => barRow(b.name||b.id||'Unknown', b.count, maxBrow, sumBrow, 'var(--orange)')).join('') : noData}
         </div>
         <div class="section">
-          <div class="sec-hdr"><span class="sec-title">🗺 Countries</span></div>
-          ${locs.length ? locs.slice(0,8).map(l => barRow(l.name || l.id || 'Unknown', l.count, maxLocs, 'var(--purple)')).join('') : noData}
+          <div class="sec-hdr"><span class="sec-title">💻 Systems</span></div>
+          ${systems.length ? systems.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSys, sumSys, 'var(--blue)')).join('') : noData}
         </div>
+      </div>
+
+      <div class="traffic-cols">
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">🗺 Countries</span></div>
+          ${locs.length ? locs.slice(0,10).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLocs, sumLocs, 'var(--purple)')).join('') : noData}
+        </div>
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">🗣 Languages</span></div>
+          ${langs.length ? langs.slice(0,8).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLang, sumLang, 'var(--muted)')).join('') : noData}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">📐 Screen Sizes</span></div>
+        ${sizes.length ? sizes.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSz, sumSz, 'var(--green)', true)).join('') : noData}
       </div>
     `}
   `;
