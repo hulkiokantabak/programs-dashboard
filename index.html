@@ -908,13 +908,14 @@ function renderAllPrograms() {
     const f   = d.info?.forks_count        ?? 0;
     const sn  = (d.stargazers||[]).filter(x => new Date(x.starred_at||0) >= cutoff).length;
     const fn  = (d.forks||[]).filter(x => new Date(x.created_at||0) >= cutoff).length;
-    const cm  = (d.commits14||[]).length;
-    const cm52= (d.commitStats||[]).reduce((a,w)=>a+(w.total||0),0);
-    if (token && !d.commitStats) anyComputing = true;
+    const cm    = (d.commits14||[]).length;
+    const cm52  = (d.commitStats||[]).reduce((a,w)=>a+(w.total||0),0);
+    const csWait= token && d.commitStats === null; // 202 still computing
+    if (csWait) anyComputing = true;
     totV   += v; totVU  += vu; totC   += c; totCU  += cu;
     totS   += s; totSNew+= sn; totF   += f; totFNew+= fn;
     totCm14+= cm; totCm52+= cm52;
-    return { prog, v, vu, c, cu, s, sn, f, fn, cm, cm52 };
+    return { prog, v, vu, c, cu, s, sn, f, fn, cm, cm52, csWait };
   });
 
   // Combined daily traffic (total + unique per day, summed across programs)
@@ -983,7 +984,7 @@ function renderAllPrograms() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map(({prog,v,vu,c,cu,s,sn,f,fn,cm,cm52}) => `
+          ${rows.map(({prog,v,vu,c,cu,s,sn,f,fn,cm,cm52,csWait}) => `
             <tr onclick="navigate('${prog.name}')">
               <td><div class="prog-name-cell">${prog.icon} ${prog.display}
                 <span class="tag-sm">${prog.tag}</span></div></td>
@@ -993,7 +994,7 @@ function renderAllPrograms() {
               <td class="nc muted">${fmtK(cu)}</td>
               <td class="nc orange">${fmtK(starsMode==='14d' ? sn : s)}</td>
               <td class="nc purple">${fmtK(forksMode==='14d' ? fn : f)}</td>
-              <td class="nc" style="color:var(--muted)">${fmtK(cmtMode==='14d' ? cm : cm52)}</td>
+              <td class="nc" style="color:var(--muted)">${cmtMode==='52w' && csWait ? '⏳' : fmtK(cmtMode==='14d' ? cm : cm52)}</td>
             </tr>`).join('')}
         </tbody>
         <tfoot>
