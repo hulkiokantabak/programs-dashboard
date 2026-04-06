@@ -461,7 +461,7 @@ async function bgRetry(name, path, delays) {
     await sleep(d);
     try {
       const data = await gh(path);
-      if (data && data.length) {
+      if (data !== null) {                           // null = 202 still computing; [] = valid (no commits)
         if (cache[name]) cache[name].commitStats = data;
         retrying.delete(name);
         const sc  = document.getElementById(`${name}-spark`);
@@ -1071,7 +1071,12 @@ async function fetchProgram(prog) {
     stargazers:  stars.status       === 'fulfilled' ? (stars.value||[]) : [],
     forks:       forks.status       === 'fulfilled' ? (forks.value||[]) : [],
     commits14:   commits14.status   === 'fulfilled' ? (commits14.value||[]) : [],
-    commitStats: commitStats.status === 'fulfilled' ? commitStats.value : null,
+    // Preserve existing commitStats if GitHub returned 202 (value===null).
+    // bgRetry may have already stored good data — don't wipe it on every refresh.
+    commitStats: (() => {
+      const v = commitStats.status === 'fulfilled' ? commitStats.value : null;
+      return v !== null ? v : (cache[n]?.commitStats ?? null);
+    })(),
   };
 }
 
@@ -1125,7 +1130,7 @@ async function loadGcData() {
   const { start, end } = gcIsoRange(gcTimeRange);
   const qs = `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
 
-  // GoatCounter rate limit: 4 req/sec — stagger requests 280ms apart
+  // GoatCounter rate limit: 4 req/sec — stagger 500ms apart (safe margin, 2 req/sec)
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const endpoints = [
     [`/stats/total${qs}`,                'total'],
@@ -1137,16 +1142,18 @@ async function loadGcData() {
     [`/stats/sizes${qs}&limit=10`,       'sizes'],
     [`/stats/languages${qs}&limit=10`,   'langs'],
   ];
-  let firstErr = null;
+  const gcErrors = {};
   for (let i = 0; i < endpoints.length; i++) {
-    if (i > 0) await wait(280);
+    if (i > 0) await wait(500);
     const [path, key] = endpoints[i];
     try   { gcCache[key] = await gcFetch(path); }
-    catch (e) { gcCache[key] = null; if (!firstErr) firstErr = e.message; }
+    catch (e) { gcCache[key] = null; gcErrors[key] = e.message; }
   }
 
   gcCache.loading = false;
-  if (firstErr && !gcCache.total) gcCache.error = firstErr;
+  gcCache.errors  = gcErrors;
+  // Only set top-level error if total itself failed (blocks the whole view)
+  gcCache.error   = gcErrors.total || null;
   renderAnalytics();
 }
 
@@ -1196,7 +1203,10 @@ function renderAnalytics() {
     </div>`;
   };
 
-  const noData = '<div style="color:var(--dim);font-size:.75rem;padding:4px 0">No data for this period</div>';
+  const gcErr  = gcCache.errors || {};
+  const noData = (key) => gcErr[key]
+    ? `<div style="color:var(--red);font-size:.72rem;padding:4px 0">⚠ ${gcErr[key]}</div>`
+    : '<div style="color:var(--dim);font-size:.75rem;padding:4px 0">No data for this period</div>';
 
   el.innerHTML = `
     <div class="all-hdr">
@@ -1316,40 +1326,40 @@ function renderAnalytics() {
               </tr>
             </tfoot>
           </table>
-        </div>` : noData}
+        </div>` : noData('hits')}
       </div>
 
       <!-- Top Referrers -->
       <div class="section">
         <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
-        ${refs.length ? refs.slice(0,10).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData}
+        ${refs.length ? refs.slice(0,10).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData('refs')}
       </div>
 
       <div class="traffic-cols">
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🌐 Browsers</span></div>
-          ${brows.length ? brows.slice(0,8).map(b => barRow(b.name||b.id||'Unknown', b.count, maxBrow, sumBrow, 'var(--orange)')).join('') : noData}
+          ${brows.length ? brows.slice(0,8).map(b => barRow(b.name||b.id||'Unknown', b.count, maxBrow, sumBrow, 'var(--orange)')).join('') : noData('browsers')}
         </div>
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">💻 Systems</span></div>
-          ${systems.length ? systems.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSys, sumSys, 'var(--blue)')).join('') : noData}
+          ${systems.length ? systems.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSys, sumSys, 'var(--blue)')).join('') : noData('systems')}
         </div>
       </div>
 
       <div class="traffic-cols">
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🗺 Countries</span></div>
-          ${locs.length ? locs.slice(0,10).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLocs, sumLocs, 'var(--purple)')).join('') : noData}
+          ${locs.length ? locs.slice(0,10).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLocs, sumLocs, 'var(--purple)')).join('') : noData('locs')}
         </div>
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🗣 Languages</span></div>
-          ${langs.length ? langs.slice(0,8).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLang, sumLang, 'var(--muted)')).join('') : noData}
+          ${langs.length ? langs.slice(0,8).map(l => barRow(l.name||l.id||'Unknown', l.count, maxLang, sumLang, 'var(--muted)')).join('') : noData('langs')}
         </div>
       </div>
 
       <div class="section">
         <div class="sec-hdr"><span class="sec-title">📐 Screen Sizes</span></div>
-        ${sizes.length ? sizes.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSz, sumSz, 'var(--green)', true)).join('') : noData}
+        ${sizes.length ? sizes.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSz, sumSz, 'var(--green)', true)).join('') : noData('sizes')}
       </div>
     `}
   `;
