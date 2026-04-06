@@ -1335,12 +1335,6 @@ function renderAnalytics() {
         </div>` : noData('hits')}
       </div>
 
-      <!-- Top Referrers -->
-      <div class="section">
-        <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
-        ${refs.length ? refs.slice(0,10).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData('refs')}
-      </div>
-
       <div class="traffic-cols">
         <div class="section">
           <div class="sec-hdr"><span class="sec-title">🌐 Browsers</span></div>
@@ -1363,9 +1357,15 @@ function renderAnalytics() {
         </div>
       </div>
 
-      <div class="section">
-        <div class="sec-hdr"><span class="sec-title">📐 Screen Sizes</span></div>
-        ${sizes.length ? sizes.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSz, sumSz, 'var(--green)', true)).join('') : noData('sizes')}
+      <div class="traffic-cols">
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">↩ Top Referrers</span></div>
+          ${refs.length ? refs.slice(0,8).map(r => barRow(r.name||'(direct)', r.count, maxRefs, sumRefs, 'var(--green)')).join('') : noData('refs')}
+        </div>
+        <div class="section">
+          <div class="sec-hdr"><span class="sec-title">📐 Screen Sizes</span></div>
+          ${sizes.length ? sizes.slice(0,8).map(s => barRow(s.name||s.id||'Unknown', s.count, maxSz, sumSz, 'var(--green)', true)).join('') : noData('sizes')}
+        </div>
       </div>
     `}
   `;
