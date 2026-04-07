@@ -298,6 +298,27 @@
                       min-width:38px; }
     .gc-pages-tfoot td { font-weight:600; color:var(--text); border-top:1px solid var(--border);
                          padding-top:8px; }
+
+    /* ── SPINNING REFRESH BUTTON ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .refresh-spin { display:inline-block; animation: spin .65s linear infinite; }
+
+    /* ── SORTABLE TABLE HEADERS ── */
+    .prog-table th.sortable { cursor:pointer; user-select:none; }
+    .prog-table th.sortable:hover { color:var(--text); }
+    .sort-icon { margin-left:3px; opacity:.4; font-size:.75em; }
+    .prog-table th.sort-asc .sort-icon,
+    .prog-table th.sort-desc .sort-icon { opacity:1; color:var(--blue); }
+
+    /* ── PROGRAM META BAR ── */
+    .prog-meta-bar { display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+                     font-size:.75rem; color:var(--muted); margin-bottom:22px;
+                     padding:10px 14px; background:var(--surf);
+                     border:1px solid var(--border); border-radius:9px; }
+    .prog-meta-bar .meta-item { display:flex; align-items:center; gap:5px; min-width:0; }
+    .prog-meta-bar .meta-msg  { color:var(--text); font-style:italic;
+                                max-width:340px; overflow:hidden; text-overflow:ellipsis;
+                                white-space:nowrap; }
   </style>
 </head>
 <body>
@@ -307,7 +328,7 @@
   <button class="mob-ham" onclick="sidebarOpen()" aria-label="Open navigation">☰</button>
   <span class="mob-bar-title">🖥 Programs</span>
   <button class="btn-icon btn" data-theme-btn onclick="toggleTheme()" title="Theme">🌙</button>
-  <button class="btn btn-green" onclick="loadAll()" style="font-size:.7rem;padding:4px 10px;flex-shrink:0">⟳</button>
+  <button class="btn btn-green" id="mobRefreshBtn" onclick="loadAll()" style="font-size:.7rem;padding:4px 10px;flex-shrink:0">⟳</button>
   <span class="last-upd" id="mobLastUpd" style="font-size:.6rem"></span>
 </div>
 <div class="mob-overlay" id="mobOverlay" onclick="sidebarClose()"></div>
@@ -331,7 +352,7 @@
       <span id="tokenStatus" class="tok-status tok-warn">⚠ Token needed for traffic &amp; commit data</span>
       <div class="footer-row">
         <button class="btn-icon btn" id="themeBtn" data-theme-btn onclick="toggleTheme()" title="Day / Night">🌙</button>
-        <button class="btn btn-green" onclick="loadAll()">⟳ Refresh</button>
+        <button class="btn btn-green" id="refreshBtn" onclick="loadAll()">⟳ Refresh</button>
         <span class="last-upd" id="lastUpd">—</span>
       </div>
     </div>
@@ -394,6 +415,9 @@ const retrying  = new Set();
 let gcToken     = localStorage.getItem('pd_gc_token') || '';
 let gcTimeRange = '30d'; // '7d' | '30d' | '90d'
 const gcCache   = {};
+let sortCol     = 'views'; // All Programs table sort column
+let sortDir     = 'desc';  // 'asc' | 'desc'
+let lastUpdTime = null;
 
 // ═══════════════════════════════════════════════════════
 //  THEME
@@ -659,6 +683,7 @@ document.addEventListener('click', e => {
   else if (fn === 'setForksMode') setForksMode(val);
   else if (fn === 'setCmtMode')   setCmtMode(val);
   else if (fn === 'setGcRange')   setGcRange(val);
+  else if (fn === 'setSortCol')   setSortCol(val);
 });
 
 // ═══════════════════════════════════════════════════════
@@ -669,6 +694,24 @@ function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.t
 function dateStr(s) { return s.slice(5,10); }
 function weekStr(t) { return new Date(t*1000).toISOString().slice(2,7); }
 function sign(n)    { return n > 0 ? `+${n}` : n === 0 ? 'none' : '—'; }
+function timeAgo(date) {
+  if (!date) return '—';
+  const s = Math.floor((Date.now() - new Date(date)) / 1000);
+  if (s < 10)  return 'just now';
+  if (s < 60)  return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60)  return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h}h ${m % 60}m ago`;
+  const day = Math.floor(h / 24);
+  return `${day}d ago`;
+}
+function updateLastUpdDisplay() {
+  const txt = lastUpdTime ? `Updated ${timeAgo(lastUpdTime)}` : '—';
+  document.getElementById('lastUpd').textContent = txt;
+  const m = document.getElementById('mobLastUpd');
+  if (m) m.textContent = txt;
+}
 
 // ═══════════════════════════════════════════════════════
 //  SIDEBAR
@@ -730,6 +773,11 @@ function renderCurrentView() {
 function setStarsMode(v) { starsMode = v; renderCurrentView(); }
 function setForksMode(v) { forksMode = v; renderCurrentView(); }
 function setCmtMode(v)   { cmtMode   = v; renderCurrentView(); }
+function setSortCol(col) {
+  if (sortCol === col) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  else { sortCol = col; sortDir = 'desc'; }
+  renderCurrentView();
+}
 function sidebarOpen() {
   document.querySelector('.sidebar').classList.add('mob-open');
   document.getElementById('mobOverlay').classList.add('mob-open');
@@ -832,6 +880,11 @@ function renderProgram(prog) {
   const sparkPts = weekly.map(w => ({ label: weekStr(w.week), val: w.total||0 }));
   const computing = token && !sparkPts.length;
 
+  const lc        = d.latestCommit;
+  const lcMsg     = lc?.commit?.message?.split('\n')[0] || '';
+  const lcDate    = lc?.commit?.author?.date || lc?.commit?.committer?.date || null;
+  const openIssues = info.open_issues_count ?? 0;
+
   document.getElementById('mainContent').innerHTML = `
     <div class="prog-header">
       <div>
@@ -847,6 +900,19 @@ function renderProgram(prog) {
     </div>
 
     ${buildStatCards({ vTot, vUniq, cTot, cUniq, stars, starsNew, forks, forksNew, c14, c52, computing })}
+
+    <div class="prog-meta-bar">
+      <div class="meta-item">🔨
+        ${lcMsg
+          ? `<span class="meta-msg">"${lcMsg}"</span><span style="color:var(--dim)">&nbsp;— ${timeAgo(lcDate)}</span>`
+          : `<span style="color:var(--dim)">No commits yet</span>`}
+      </div>
+      <div class="meta-item">
+        ${openIssues > 0
+          ? `🐛 <span style="color:var(--orange);font-weight:600">${openIssues}</span> open issue${openIssues > 1 ? 's' : ''}`
+          : `<span style="color:var(--green)">✓ No open issues</span>`}
+      </div>
+    </div>
 
     <div class="section">
       <div class="sec-hdr">
@@ -914,6 +980,25 @@ function renderAllPrograms() {
     return { prog, v, vu, c, cu, s, sn, f, fn, cm, cm52, csWait };
   });
 
+  // Sort rows
+  rows.sort((a, b) => {
+    let av, bv;
+    switch (sortCol) {
+      case 'name':       av = a.prog.display.toLowerCase(); bv = b.prog.display.toLowerCase(); break;
+      case 'views':      av = a.v;  bv = b.v;  break;
+      case 'viewsUniq':  av = a.vu; bv = b.vu; break;
+      case 'clones':     av = a.c;  bv = b.c;  break;
+      case 'clonesUniq': av = a.cu; bv = b.cu; break;
+      case 'stars':      av = starsMode==='14d' ? a.sn : a.s; bv = starsMode==='14d' ? b.sn : b.s; break;
+      case 'forks':      av = forksMode==='14d' ? a.fn : a.f; bv = forksMode==='14d' ? b.fn : b.f; break;
+      case 'commits':    av = cmtMode==='14d' ? a.cm : a.cm52; bv = cmtMode==='14d' ? b.cm : b.cm52; break;
+      default: return 0;
+    }
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ?  1 : -1;
+    return 0;
+  });
+
   // Combined daily traffic (total + unique per day, summed across programs)
   const dayMap = {};
   PROGRAMS.forEach(prog => {
@@ -969,14 +1054,14 @@ function renderAllPrograms() {
       <table class="prog-table">
         <thead>
           <tr>
-            <th>Program</th>
-            <th class="r">Views 14d</th>
-            <th class="r">Unique</th>
-            <th class="r">Clones 14d</th>
-            <th class="r">Unique</th>
-            <th class="r">Stars ⭐ <span style="font-weight:400;color:var(--dim)">${starsMode==='14d'?'14d':'all'}</span></th>
-            <th class="r">Forks ⑂ <span style="font-weight:400;color:var(--dim)">${forksMode==='14d'?'14d':'all'}</span></th>
-            <th class="r">Commits <span style="font-weight:400;color:var(--dim)">${cmtMode==='14d'?'14d':'52w'}</span></th>
+            <th class="sortable ${sortCol==='name'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="name">Program<span class="sort-icon">${sortCol==='name'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='views'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="views">Views 14d<span class="sort-icon">${sortCol==='views'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='viewsUniq'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="viewsUniq">Unique<span class="sort-icon">${sortCol==='viewsUniq'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='clones'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="clones">Clones 14d<span class="sort-icon">${sortCol==='clones'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='clonesUniq'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="clonesUniq">Unique<span class="sort-icon">${sortCol==='clonesUniq'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='stars'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="stars">Stars ⭐ <span style="font-weight:400;color:var(--dim)">${starsMode==='14d'?'14d':'all'}</span><span class="sort-icon">${sortCol==='stars'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='forks'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="forks">Forks ⑂ <span style="font-weight:400;color:var(--dim)">${forksMode==='14d'?'14d':'all'}</span><span class="sort-icon">${sortCol==='forks'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
+            <th class="r sortable ${sortCol==='commits'?'sort-'+sortDir:''}" data-fn="setSortCol" data-val="commits">Commits <span style="font-weight:400;color:var(--dim)">${cmtMode==='14d'?'14d':'52w'}</span><span class="sort-icon">${sortCol==='commits'?(sortDir==='asc'?'↑':'↓'):'↕'}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -1049,7 +1134,7 @@ function renderAllPrograms() {
 // ═══════════════════════════════════════════════════════
 async function fetchProgram(prog) {
   const n = prog.name, since14 = daysAgo(14);
-  const [info, views, clones, stars, forks, commits14, commitStats] =
+  const [info, views, clones, stars, forks, commits14, commitStats, latestCmt] =
     await Promise.allSettled([
       gh(`/repos/${OWNER}/${n}`),
       token ? gh(`/repos/${OWNER}/${n}/traffic/views`)  : Promise.resolve(null),
@@ -1060,14 +1145,18 @@ async function fetchProgram(prog) {
       token ? gh(`/repos/${OWNER}/${n}/commits?since=${since14}&author=${OWNER}&per_page=100`)
             : Promise.resolve([]),
       token ? fetchCommitStats(n) : Promise.resolve(null),
+      gh(`/repos/${OWNER}/${n}/commits?per_page=1`),
     ]);
+  const c14list = commits14.status === 'fulfilled' ? (commits14.value||[]) : [];
+  const lcList  = latestCmt.status === 'fulfilled' ? (latestCmt.value||[]) : [];
   cache[n] = {
-    info:        info.status        === 'fulfilled' ? info.value        : {},
-    views:       views.status       === 'fulfilled' ? views.value       : null,
-    clones:      clones.status      === 'fulfilled' ? clones.value      : null,
-    stargazers:  stars.status       === 'fulfilled' ? (stars.value||[]) : [],
-    forks:       forks.status       === 'fulfilled' ? (forks.value||[]) : [],
-    commits14:   commits14.status   === 'fulfilled' ? (commits14.value||[]) : [],
+    info:         info.status   === 'fulfilled' ? info.value        : {},
+    views:        views.status  === 'fulfilled' ? views.value       : null,
+    clones:       clones.status === 'fulfilled' ? clones.value      : null,
+    stargazers:   stars.status  === 'fulfilled' ? (stars.value||[]) : [],
+    forks:        forks.status  === 'fulfilled' ? (forks.value||[]) : [],
+    commits14:    c14list,
+    latestCommit: c14list.length > 0 ? c14list[0] : (lcList.length > 0 ? lcList[0] : null),
     // Preserve existing commitStats if GitHub returned 202 (value===null).
     // bgRetry may have already stored good data — don't wipe it on every refresh.
     commitStats: (() => {
@@ -1083,11 +1172,18 @@ function setUpdText(t) {
   if (m) m.textContent = t;
 }
 async function loadAll() {
+  const rBtn  = document.getElementById('refreshBtn');
+  const mBtn  = document.getElementById('mobRefreshBtn');
+  if (rBtn) { rBtn.disabled = true;  rBtn.innerHTML = '<span class="refresh-spin">⟳</span> Refresh'; }
+  if (mBtn) { mBtn.disabled = true;  mBtn.innerHTML = '<span class="refresh-spin">⟳</span>'; }
   setUpdText('Loading…');
   await Promise.allSettled(PROGRAMS.map(fetchProgram));
   updateBadges();
   renderCurrentView();
-  setUpdText(new Date().toLocaleTimeString());
+  lastUpdTime = new Date();
+  updateLastUpdDisplay();
+  if (rBtn) { rBtn.disabled = false; rBtn.innerHTML = '⟳ Refresh'; }
+  if (mBtn) { mBtn.disabled = false; mBtn.innerHTML = '⟳'; }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1402,6 +1498,7 @@ loadToken();
 buildSidebar();
 loadAll();
 startAutoRefresh();
+setInterval(updateLastUpdDisplay, 30000); // keep "Updated X ago" fresh
 if (gcToken) loadGcData(); // pre-fetch GC data in background if token already saved
 </script>
 
