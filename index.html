@@ -693,7 +693,7 @@ function fmtK(n)    { if (n == null) return '—'; return n >= 1000 ? (n/1000).t
 function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
 function dateStr(s) { return s.slice(5,10); }
 function weekStr(t) { return new Date(t*1000).toISOString().slice(2,7); }
-function sign(n)    { return n > 0 ? `+${n}` : n === 0 ? 'none' : '—'; }
+function esc(s)     { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function timeAgo(date) {
   if (!date) return '—';
   const s = Math.floor((Date.now() - new Date(date)) / 1000);
@@ -904,7 +904,7 @@ function renderProgram(prog) {
     <div class="prog-meta-bar">
       <div class="meta-item">🔨
         ${lcMsg
-          ? `<span class="meta-msg">"${lcMsg}"</span><span style="color:var(--dim)">&nbsp;— ${timeAgo(lcDate)}</span>`
+          ? `<span class="meta-msg">"${esc(lcMsg)}"</span><span style="color:var(--dim)">&nbsp;— ${timeAgo(lcDate)}</span>`
           : `<span style="color:var(--dim)">No commits yet</span>`}
       </div>
       <div class="meta-item">
@@ -1281,7 +1281,7 @@ function renderAnalytics() {
   const maxOf = arr => Math.max(...arr.map(x => x.count), 1);
   const sumOf = arr => arr.reduce((a, x) => a + x.count, 0) || 1;
 
-  const maxHits = maxOf(hits);   const sumHits = sumOf(hits);
+  const maxHits = maxOf(hits);
   const maxRefs = maxOf(refs);   const sumRefs = sumOf(refs);
   const maxBrow = maxOf(brows);  const sumBrow = sumOf(brows);
   const maxSys  = maxOf(systems);const sumSys  = sumOf(systems);
@@ -1295,7 +1295,7 @@ function renderAnalytics() {
     const cls    = wide ? 'gc-bar-label-wide' : 'gc-bar-label';
     return `<div class="gc-bar-row">
       <span class="gc-bar-pct">${txtPct}%</span>
-      <span class="${cls}" title="${label}">${label}</span>
+      <span class="${cls}" title="${esc(label)}">${esc(label)}</span>
       <div class="gc-bar-track"><div class="gc-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
       <span class="gc-bar-count">${fmtK(count)}</span>
     </div>`;
@@ -1303,7 +1303,7 @@ function renderAnalytics() {
 
   const gcErr  = gcCache.errors || {};
   const noData = (key) => gcErr[key]
-    ? `<div style="color:var(--red);font-size:.72rem;padding:4px 0">⚠ ${gcErr[key]}</div>`
+    ? `<div style="color:var(--red);font-size:.72rem;padding:4px 0">⚠ ${esc(gcErr[key])}</div>`
     : '<div style="color:var(--dim);font-size:.75rem;padding:4px 0">No data for this period</div>';
 
   el.innerHTML = `
@@ -1318,7 +1318,7 @@ function renderAnalytics() {
     <div class="gc-token-row">
       <input id="gcTokenInput" type="password" class="gc-token-input"
              placeholder="GoatCounter API token…" autocomplete="new-password"
-             value="${gcToken}" />
+             value="${esc(gcToken)}" />
       <button class="btn btn-green" onclick="saveGcToken()" style="flex-shrink:0">Load</button>
       <a href="https://hulkiokantabak.goatcounter.com/user/api" target="_blank" rel="noopener noreferrer">
         <button class="btn btn-ghost" style="flex-shrink:0;font-size:.67rem">Get token ↗</button>
@@ -1338,7 +1338,7 @@ function renderAnalytics() {
       <div class="gc-empty"><div style="color:var(--muted);font-size:.9rem">⏳ Loading GoatCounter data…</div></div>
     ` : err ? `
       <div class="gc-empty">
-        <div style="color:var(--red);font-size:.85rem;margin-bottom:10px">⚠ GoatCounter API error: ${err}</div>
+        <div style="color:var(--red);font-size:.85rem;margin-bottom:10px">⚠ GoatCounter API error: ${esc(err)}</div>
         <div style="font-size:.75rem;color:var(--dim);margin-bottom:8px">Check your API token is correct and has read permissions.</div>
         <div style="font-size:.73rem;color:var(--dim)">If the error persists, view data directly at
           <a href="https://hulkiokantabak.goatcounter.com" target="_blank" rel="noopener noreferrer"
@@ -1405,14 +1405,14 @@ function renderAnalytics() {
                 const pct = total?.total ? Math.round((h.count / total.total) * 100) : '—';
                 return `<tr>
                   <td>
-                    <div class="gc-pages-path">${h.path || '/'}</div>
-                    ${h.title ? `<div class="gc-pages-title">${h.title}</div>` : ''}
+                    <div class="gc-pages-path">${esc(h.path || '/')}</div>
+                    ${h.title ? `<div class="gc-pages-title">${esc(h.title)}</div>` : ''}
                   </td>
                   <td class="gc-pages-spark">
                     <canvas id="gc-spark-${i}" style="width:90px;height:24px;display:block"></canvas>
                   </td>
                   <td class="gc-pages-count">${fmtK(h.count)}</td>
-                  <td class="gc-pages-pct">${pct}%</td>
+                  <td class="gc-pages-pct">${typeof pct === 'number' ? pct + '%' : pct}</td>
                 </tr>`;
               }).join('')}
             </tbody>
