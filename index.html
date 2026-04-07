@@ -462,12 +462,18 @@ function refreshTokenUI() {
 //  GITHUB API
 // ═══════════════════════════════════════════════════════
 async function gh(path, accept) {
-  const h = { Accept: accept || 'application/vnd.github+json' };
+  const h    = { Accept: accept || 'application/vnd.github+json' };
   if (token) h.Authorization = `Bearer ${token}`;
-  const r = await fetch('https://api.github.com' + path, { headers: h });
-  if (r.status === 202) return null;
-  if (!r.ok) throw new Error(`${r.status}`);
-  return r.json();
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const r = await fetch('https://api.github.com' + path, { headers: h, signal: ctrl.signal });
+    if (r.status === 202) return null;
+    if (!r.ok) throw new Error(`${r.status}`);
+    return r.json();
+  } finally {
+    clearTimeout(tid);
+  }
 }
 async function fetchCommitStats(name) {
   const path  = `/repos/${OWNER}/${name}/stats/commit_activity`;
@@ -909,8 +915,8 @@ function renderProgram(prog) {
       </div>
       <div class="meta-item">
         ${openIssues > 0
-          ? `🐛 <span style="color:var(--orange);font-weight:600">${openIssues}</span> open issue${openIssues > 1 ? 's' : ''}`
-          : `<span style="color:var(--green)">✓ No open issues</span>`}
+          ? `🐛 <span style="color:var(--orange);font-weight:600">${openIssues}</span> open issue${openIssues !== 1 ? 's' : ''}/PR${openIssues !== 1 ? 's' : ''}`
+          : `<span style="color:var(--green)">✓ No open issues or PRs</span>`}
       </div>
     </div>
 
@@ -1134,7 +1140,7 @@ function renderAllPrograms() {
 // ═══════════════════════════════════════════════════════
 async function fetchProgram(prog) {
   const n = prog.name, since14 = daysAgo(14);
-  const [info, views, clones, stars, forks, commits14, commitStats, latestCmt] =
+  const [info, views, clones, stars, forks, commits14, commitStats] =
     await Promise.allSettled([
       gh(`/repos/${OWNER}/${n}`),
       token ? gh(`/repos/${OWNER}/${n}/traffic/views`)  : Promise.resolve(null),
@@ -1145,10 +1151,15 @@ async function fetchProgram(prog) {
       token ? gh(`/repos/${OWNER}/${n}/commits?since=${since14}&author=${OWNER}&per_page=100`)
             : Promise.resolve([]),
       token ? fetchCommitStats(n) : Promise.resolve(null),
-      gh(`/repos/${OWNER}/${n}/commits?per_page=1`),
     ]);
   const c14list = commits14.status === 'fulfilled' ? (commits14.value||[]) : [];
-  const lcList  = latestCmt.status === 'fulfilled' ? (latestCmt.value||[]) : [];
+  // Only fetch latest commit when 14d window is empty — avoids a redundant call
+  // for active repos where c14list[0] is already the most recent commit.
+  let latestCommit = c14list.length > 0 ? c14list[0] : null;
+  if (!latestCommit) {
+    try { const lc = await gh(`/repos/${OWNER}/${n}/commits?per_page=1`); latestCommit = lc?.[0] ?? null; }
+    catch (_) {}
+  }
   cache[n] = {
     info:         info.status   === 'fulfilled' ? info.value        : {},
     views:        views.status  === 'fulfilled' ? views.value       : null,
@@ -1156,7 +1167,7 @@ async function fetchProgram(prog) {
     stargazers:   stars.status  === 'fulfilled' ? (stars.value||[]) : [],
     forks:        forks.status  === 'fulfilled' ? (forks.value||[]) : [],
     commits14:    c14list,
-    latestCommit: c14list.length > 0 ? c14list[0] : (lcList.length > 0 ? lcList[0] : null),
+    latestCommit,
     // Preserve existing commitStats if GitHub returned 202 (value===null).
     // bgRetry may have already stored good data — don't wipe it on every refresh.
     commitStats: (() => {
@@ -1205,11 +1216,18 @@ function gcIsoRange(range) {
 }
 
 async function gcFetch(path) {
-  const r = await fetch(`${GC_BASE}${path}`, {
-    headers: { 'Authorization': `Bearer ${gcToken}` }
-  });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const r = await fetch(`${GC_BASE}${path}`, {
+      headers: { 'Authorization': `Bearer ${gcToken}` },
+      signal: ctrl.signal
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  } finally {
+    clearTimeout(tid);
+  }
 }
 
 function saveGcToken() {
@@ -1502,8 +1520,5 @@ setInterval(updateLastUpdDisplay, 30000); // keep "Updated X ago" fresh
 if (gcToken) loadGcData(); // pre-fetch GC data in background if token already saved
 </script>
 
-<!-- GoatCounter — tracks this dashboard as its own product -->
-<script data-goatcounter="https://hulkiokantabak.goatcounter.com/count"
-        async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
