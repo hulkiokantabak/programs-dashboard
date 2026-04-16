@@ -1194,7 +1194,14 @@ async function loadAll() {
   if (rBtn) { rBtn.disabled = true;  rBtn.innerHTML = '<span class="refresh-spin">⟳</span> Refresh'; }
   if (mBtn) { mBtn.disabled = true;  mBtn.innerHTML = '<span class="refresh-spin">⟳</span>'; }
   setUpdText('Loading…');
-  await Promise.allSettled(PROGRAMS.map(fetchProgram));
+  // Mobile Safari chokes when ~50+ concurrent fetches are fired at page init
+  // (symptom: the outer Promise.allSettled below never resolves even though each
+  // fetchProgram() has populated cache[] — dashboard stays stuck on "Loading…").
+  // Process in small batches so queued connections drain cleanly on every browser.
+  const BATCH = 3;
+  for (let i = 0; i < PROGRAMS.length; i += BATCH) {
+    await Promise.allSettled(PROGRAMS.slice(i, i + BATCH).map(fetchProgram));
+  }
   updateBadges();
   renderCurrentView();
   lastUpdTime = new Date();
